@@ -3,9 +3,8 @@
 	LANG:JAVA
 	TASK:holstein
 */
-import java.io.*;
 import java.util.*;
-
+import java.io.*;
 class holstein{
 	public static int count(int v){
 		int ret=0;
