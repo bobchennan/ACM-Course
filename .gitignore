@@ -6,3 +6,5 @@
 *.ear
 *.exe
 *.o
+
+/mysql-connector-java
