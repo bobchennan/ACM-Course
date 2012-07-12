@@ -18,7 +18,7 @@ int dx[]={1,1,-1,-1,2,2,-2,-2};
 int dy[]={2,-2,2,-2,1,-1,1,-1};
 int n,m;
 int kx,ky;
-long long d[31][27],d1[31][27],tmp[31][27],tmp2[31][27];
+int d[31][27],d1[31][27],tmp[31][27],tmp2[31][27];
 queue< pair<int,int> > Q;
 bool in[31][27],can[31][27];
 bool inBoard(int tx,int ty){
@@ -27,7 +27,6 @@ bool inBoard(int tx,int ty){
 	return 1;
 }
 void calc(int x,int y){
-	memset(tmp,44,sizeof(tmp));
 	memset(in,0,sizeof(in));
 	Q.push(make_pair(x,y));
 	in[x][y]=1;tmp[x][y]=0;
@@ -45,7 +44,6 @@ void calc(int x,int y){
 			}
 		}
 	}
-	memset(tmp2,44,sizeof(tmp2));
 	for(int i=1;i<=n;++i)
 		for(int j=1;j<=m;++j){
 			if(!in[i][j]){
@@ -56,16 +54,9 @@ void calc(int x,int y){
 			int ddx=abs(i-kx);
 			int ddy=abs(j-ky);
 			int h=max(ddx,ddy);
-			if((h&1)==(tmp[i][j]&1)){
-				tmp2[i][j]=max(1LL*h,tmp[i][j]);
+				tmp2[i][j]=tmp[i][j]+h;
 				Q.push(make_pair(i,j));
 				in[i][j]=1;
-			}
-			else{
-				tmp2[i][j]=max(1LL*h,tmp[i][j]);
-				Q.push(make_pair(i,j));
-				in[i][j]=1;
-			}
 		}
 	while(!Q.empty()){
 		int xx=Q.front().first;
@@ -76,7 +67,7 @@ void calc(int x,int y){
 			int ty=dy[i]+yy;
 			if(!inBoard(tx,ty)||!can[tx][ty])continue;
 			if(tmp2[xx][yy]+1<tmp2[tx][ty]){
-				tmp[tx][ty]=tmp[xx][yy]+1;
+				tmp2[tx][ty]=tmp2[xx][yy]+1;
 				if(!in[tx][ty]){
 					in[tx][ty]=1;
 					Q.push(make_pair(tx,ty));
@@ -96,7 +87,6 @@ int main(){
 	char ch;
 	scanf("%c%d%*c",&ch,&kx);
 	ky=ch-'A'+1;
-	char ch2;
 	int x1,y1;
 	for(int i=1;i<=n;++i)
 		for(int j=1;j<=m;++j){
@@ -109,11 +99,12 @@ int main(){
 		y1=ch-'A'+1;	
 		calc(x1,y1);
 	}
-	long long ans=(~0U>>1);
+	int ans=(~0U>>1);
 	for(int i=1;i<=n;++i)
 		for(int j=1;j<=m;++j)
 			if(can[i][j])
-			ans=min(ans,d[i][j]+d1[i][j]);
-	printf("%lld\n",ans);
+				if(ans>d[i][j]+d1[i][j])
+					ans=d[i][j]+d1[i][j],kx=i,ky=j;
+	printf("%d\n",ans);
 	return 0;
 }
