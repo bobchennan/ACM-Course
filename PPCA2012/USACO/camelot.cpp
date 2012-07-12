@@ -62,7 +62,7 @@ void calc(int x,int y){
 				in[i][j]=1;
 			}
 			else{
-				tmp2[i][j]=max(1LL*h+1,tmp[i][j]);
+				tmp2[i][j]=max(1LL*h,tmp[i][j]);
 				Q.push(make_pair(i,j));
 				in[i][j]=1;
 			}
