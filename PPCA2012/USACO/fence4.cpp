@@ -58,7 +58,14 @@ double calc(pair<int,int> a,pair<int,int> b,pair<int,int> c){
 	double h=fabs(cross(a,b,c))/dis(b,c);
 	return h;
 }
-bool cmp(int x,int y){
+bool cmp(int x,int y){/*
+	double x1=ll[x];
+	double y1=rr[x];
+	if(x1>y1)x1-=2*Pi;
+	double x2=ll[y];
+	double y2=rr[y];
+	if(x2>y2)x2-=2*Pi;
+	if(max(x1,x2)+eps>min(y1,y2))return 1;*/
 	double t1=min(dis(make_pair(rx,ry),p[x]),dis(make_pair(rx,ry),p[x+1]));
 	double t2=min(dis(make_pair(rx,ry),p[y]),dis(make_pair(rx,ry),p[y+1]));
 	if(fabs(t1-t2)>eps)return t1<t2;
