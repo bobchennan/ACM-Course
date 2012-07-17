@@ -63,7 +63,7 @@ bool search(int u){
 	if(r1[0]!=r2[0]||r2[0]!=r3[0])return 0;
 	if(!(r1[1]<r2[1]&&r1[1]<r3[1]))return 0;
 	if(!(r3[r3[0]]>r2[r2[0]]&&r3[r3[0]]>r1[r1[0]]))return 0;
-	memcpy(bak,s,sizeof(s));
+	memcpy(bak,s,sizeof(s));/*
 	if((r1[0]==1||r1[2]>r3[1])&&(r2[0]==1||r2[2]>r3[1])){
 				int i=1,j=1,k=1;
 				if(!(r1[j]<r2[i]&&r2[i]<r3[k]))return 0;
@@ -96,7 +96,7 @@ bool search(int u){
 				len+=3;
 				memcpy(s,bak,sizeof(s));
 	}
-	else
+	else*/
 	for(int i=1;i<=r2[0];++i)
 		for(int j=1;r1[j]<r2[i]&&j<=r1[0];++j)
 			for(int k=r3[0];r3[k]>r2[i]&&k;--k){
