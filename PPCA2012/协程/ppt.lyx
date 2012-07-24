@@ -109,5 +109,234 @@ CNX(陈楠昕)
 bobchennan@gmail.com
 \end_layout
 
+\begin_layout BeginFrame
+声明
+\end_layout
+
+\begin_layout Standard
+大概YY了一个周末，看了很多东西，开始做这个pdf。本文更多是关于一些方法技巧的介绍以及个人一些小的想法，原创性内容较少。
+\end_layout
+
+\begin_layout Standard
+另外本文中牵扯到的语言主要有C、C++、C#、Python。
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+理由
+\end_layout
+
+\begin_layout Standard
+为什么想到这个？这个理由会在最后揭晓。大部分我要讲的内容与我的认知过程恰好想反。
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+About fac
+\end_layout
+
+\begin_layout Standard
+考虑到一个常见的求阶乘程序：
+\end_layout
+
+\begin_layout ExampleBlock
+fac-1.c
+\end_layout
+
+\begin_layout LyX-Code
+int fac(int n){
+\end_layout
+
+\begin_layout LyX-Code
+    return n?n*fac(n-1):1;
+\end_layout
+
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+我们不加参数直接编译它：gcc fac-1.c -o fac-1
+\end_layout
+
+\begin_layout Standard
+在Windows环境下大概13W左右会崩栈
+\end_layout
+
+\begin_layout Standard
+加上编译优化：gcc fac-1.c -o fac-1 -O2
+\end_layout
+
+\begin_layout Standard
+不会发生崩栈
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+原因
+\end_layout
+
+\begin_layout Standard
+函数调用以及局部变量维护通过栈来实现，因此反复递归到一定程度就会崩栈。
+\end_layout
+
+\begin_layout Standard
+计算4!程序本身调用过程如下：
+\end_layout
+
+\begin_layout Standard
+(facl 4) 
+\end_layout
+
+\begin_layout Standard
+(* 4 (fac 3))
+\end_layout
+
+\begin_layout Standard
+(* 4 (* 3 (fac 2)))
+\end_layout
+
+\begin_layout Standard
+(* 4 (* 3 (* 2 (fac 1)))) 
+\end_layout
+
+\begin_layout Standard
+(* 4 (* 3 (* 2 (* 1 (fac 0)))))
+\end_layout
+
+\begin_layout Standard
+(* 4 (* 3 (* 2 (* 1))))
+\end_layout
+
+\begin_layout Standard
+(* 4 (* 3 (* 2 1)))
+\end_layout
+
+\begin_layout Standard
+(* 4 (* 3 2)) 
+\end_layout
+
+\begin_layout Standard
+(* 4 6) 24
+\end_layout
+
+\begin_layout BeginFrame
+步骤1
+\end_layout
+
+\begin_layout Standard
+考虑到这一类问题特殊性，我们可以考虑通过不回溯的方法实现：
+\end_layout
+
+\begin_layout ExampleBlock
+fac-2.c
+\end_layout
+
+\begin_layout LyX-Code
+int fac(int n,int v){
+\end_layout
+
+\begin_layout LyX-Code
+    return n?fac(n-1,v*n):v;
+\end_layout
+
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+当然这段代码依然需要加编译优化O2才能正常运行。但是这段代码有着明显的特点，即函数最后一步是返回关于自身的调用，并且不需要回溯过程，即没有必要每次保存任何局部变
+量，这样的递归被称为尾递归。
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+尾递归
+\end_layout
+
+\begin_layout Standard
+尾递归本质上来说就是一种迭代过程，与循环并无区别，因此程序可改成如下代码：
+\end_layout
+
+\begin_layout ExampleBlock
+fac-3.c
+\end_layout
+
+\begin_layout LyX-Code
+int fac(int n,int v){
+\end_layout
+
+\begin_layout LyX-Code
+    for(;;){
+\end_layout
+
+\begin_layout LyX-Code
+        if(n==0)return v;
+\end_layout
+
+\begin_layout LyX-Code
+        v*=n;
+\end_layout
+
+\begin_layout LyX-Code
+        --n;
+\end_layout
+
+\begin_layout LyX-Code
+    }
+\end_layout
+
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout Standard
+实际上编译器编译优化就是通过相似原理实现，简单的说就是局部变量不压栈，下次调用直接使用本次空间。
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+其他语言
+\end_layout
+
+\begin_layout Standard
+C与C++依靠编译优化实现了尾递归，其他语言呢？
+\end_layout
+
+\begin_layout Standard
+Python和Java，C#一般来说是没有尾递归自动优化的能力的，递归调用受到调用栈长度的限制。
+\end_layout
+
+\begin_layout Standard
+如何解决此问题呢？
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+C#
+\end_layout
+
+\begin_layout Standard
+C#中有着更加神奇的方法，叫做Continuation。
+\end_layout
+
 \end_body
 \end_document
