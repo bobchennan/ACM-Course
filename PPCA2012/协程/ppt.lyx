@@ -97,6 +97,30 @@ figs-within-sections
 
 \begin_body
 
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+%其他中文设置% 
+\backslash
+XeTeXlinebreaklocale “zh”%中文断行 
+\backslash
+XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt%左右弹性间距 
+\backslash
+usepackage{indentfirst}%段落首行缩进 
+\backslash
+setlength{
+\backslash
+parindent}{2em}%缩进两个字符
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Title
 从递归说开去
 \end_layout
@@ -146,7 +170,28 @@ About fac
 \end_layout
 
 \begin_layout ExampleBlock
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
 fac-1.c
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout LyX-Code
@@ -161,19 +206,19 @@ int fac(int n){
 }
 \end_layout
 
-\begin_layout Standard
+\begin_layout LyX-Code
 我们不加参数直接编译它：gcc fac-1.c -o fac-1
 \end_layout
 
-\begin_layout Standard
+\begin_layout LyX-Code
 在Windows环境下大概13W左右会崩栈
 \end_layout
 
-\begin_layout Standard
+\begin_layout LyX-Code
 加上编译优化：gcc fac-1.c -o fac-1 -O2
 \end_layout
 
-\begin_layout Standard
+\begin_layout LyX-Code
 不会发生崩栈
 \end_layout
 
@@ -238,7 +283,28 @@ int fac(int n){
 \end_layout
 
 \begin_layout ExampleBlock
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
 fac-2.c
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout LyX-Code
@@ -253,7 +319,7 @@ int fac(int n,int v){
 }
 \end_layout
 
-\begin_layout Standard
+\begin_layout LyX-Code
 当然这段代码依然需要加编译优化O2才能正常运行。但是这段代码有着明显的特点，即函数最后一步是返回关于自身的调用，并且不需要回溯过程，即没有必要每次保存任何局部变
 量，这样的递归被称为尾递归。
 \end_layout
@@ -271,7 +337,28 @@ int fac(int n,int v){
 \end_layout
 
 \begin_layout ExampleBlock
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
 fac-3.c
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout LyX-Code
@@ -302,8 +389,8 @@ int fac(int n,int v){
 }
 \end_layout
 
-\begin_layout Standard
-实际上编译器编译优化就是通过相似原理实现，简单的说就是局部变量不压栈，下次调用直接使用本次空间。
+\begin_layout LyX-Code
+实际上编译器编译优化就是通过相似原理实现，简单的说就是局部变量不压栈，下次调用直接使用本次空间，或者干脆只使用寄存器。
 \end_layout
 
 \begin_layout EndFrame
@@ -331,11 +418,19 @@ Python和Java，C#一般来说是没有尾递归自动优化的能力的，递�
 \end_layout
 
 \begin_layout BeginFrame
+Python
+\end_layout
+
+\begin_layout BeginFrame
 C#
 \end_layout
 
 \begin_layout Standard
 C#中有着更加神奇的方法，叫做Continuation。
+\end_layout
+
+\begin_layout EndFrame
+
 \end_layout
 
 \end_body
