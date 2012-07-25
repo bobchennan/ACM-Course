@@ -16,6 +16,20 @@ int fac(int n,int v){
 	trail_end(n,v);
 }
 
+int fac2(int n,int v){
+	static bool cnx=0;
+	if(cnx){throw(make_pair(n,v));}
+	else{
+		cnx=1;
+		for(;;){
+			try{
+				return n==1?v:fac(n-1,v*n);
+			}
+			catch(pair<int,int> d){if(cnx)cnx=0;n=d.first,v=d.second;}
+		}
+	}
+}
+
 int main(){
 	//test1();
 	printf("%d\n",fac(200000,1));

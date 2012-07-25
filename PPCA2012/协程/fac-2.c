@@ -5,6 +5,6 @@ int fac(int n,int v){
 }
 
 int main(){
-	printf("%d\n",fac(140000,1));
+	printf("%d\n",fac(2000000,1));
 	return 0;
 }

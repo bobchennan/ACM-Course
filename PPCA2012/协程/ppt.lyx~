@@ -97,6 +97,30 @@ figs-within-sections
 
 \begin_body
 
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+%其他中文设置% 
+\backslash
+XeTeXlinebreaklocale “zh”%中文断行 
+\backslash
+XeTeXlinebreakskip = 0pt plus 1pt minus 0.1pt%左右弹性间距 
+\backslash
+usepackage{indentfirst}%段落首行缩进 
+\backslash
+setlength{
+\backslash
+parindent}{2em}%缩进两个字符
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Title
 从递归说开去
 \end_layout
@@ -382,7 +406,7 @@ C与C++依靠编译优化实现了尾递归，其他语言呢？
 \end_layout
 
 \begin_layout Standard
-Python和Java，C#一般来说是没有尾递归自动优化的能力的，递归调用受到调用栈长度的限制。
+比如Python和Java，C#一般来说是没有尾递归自动优化的能力的，递归调用受到调用栈长度的限制。
 \end_layout
 
 \begin_layout Standard
@@ -397,12 +421,179 @@ Python和Java，C#一般来说是没有尾递归自动优化的能力的，递�
 Python
 \end_layout
 
+\begin_layout Quotation
+Third, I don’t believe in recursion as the basis of all programming.
+ This is a fundamental belief of certain computer scientists, especially
+ those who love Scheme and like to teach programming by starting with a
+ “cons” cell and recursion.
+ But to me, seeing recursion as the basis of everything else is just a nice
+ theoretical approach to fundamental mathematics (turtles all the way down),
+ not a day-to-day tool.(By Guido)
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+Python2
+\end_layout
+
+\begin_layout Standard
+但是我们依然可以用一些巧妙的方法来解决这个问题：
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "catch.py"
+lstparams "caption={catch.py},label={python}"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout LyX-Code
+    
+\end_layout
+
 \begin_layout BeginFrame
 C#
 \end_layout
 
 \begin_layout Standard
 C#中有着更加神奇的方法，叫做Continuation。
+\end_layout
+
+\begin_layout Standard
+Continuation是一种控制结构：
+\end_layout
+
+\begin_layout Quotation
+A continuation reifies the program control state, i.e.
+ the continuation is a data structure that represents the computational
+ process at a given point in the process' execution; the created data structure
+ can be accessed by the programming language, instead of being hidden in
+ the runtime environment.
+ Continuations are useful for encoding other control mechanisms in programming
+ languages such as exceptions, generators, coroutines, and so on.
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+Continuation
+\end_layout
+
+\begin_layout Standard
+打个比方：
+\end_layout
+
+\begin_layout Standard
+话说你在厨房的冰箱前,考虑来点三明治尝尝。如果这时候你做了个continuation，并将其存放到你的口袋中。然后你把火鸡和面包从冰箱里取出来拿到餐台，并把他们
+做成了你想要的三明治.
+ 此时，如果你把你的continuation从口袋中取出来，并且调用一次的话。你会发现你突然又身处冰箱前, 考虑来点三明治尝尝.
+ 不过，幸运的是, 此时餐台上已经有了个你想要的三明治。而火鸡和面包都不见了.
+ 那么，你就可以径直去把它吃掉了。 :-)
+\end_layout
+
+\begin_layout Standard
+Continuation可以非常容易的实现高级流程控制：大规模退出(非结构化：goto；结构化：异常)、生成器、回溯。
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+C#(2)
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "fac.cs"
+lstparams "caption={fac.cs}"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+C++
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "fac-3.cpp"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+C++(2)
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "fib.cs"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+My Solution
+\end_layout
+
+\begin_layout Standard
+\align center
+Stack
+\end_layout
+
+\begin_layout Pause
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\Downarrow
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Pause
+
+\end_layout
+
+\begin_layout Standard
+\align center
+No Stack
 \end_layout
 
 \begin_layout EndFrame
