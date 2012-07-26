@@ -150,7 +150,7 @@ bobchennan@gmail.com
 \end_layout
 
 \begin_layout BeginFrame
-理由
+意图
 \end_layout
 
 \begin_layout Standard
@@ -239,7 +239,7 @@ int fac(int n){
 \end_layout
 
 \begin_layout Standard
-(facl 4) 
+(fac 4) 
 \end_layout
 
 \begin_layout Standard
@@ -440,17 +440,18 @@ Python2
 \end_layout
 
 \begin_layout Standard
-但是我们依然可以用一些巧妙的方法来解决这个问题：
+但是我们依然可以用一些巧妙的方法来解决这个问题：(catch.py)
 \end_layout
 
-\begin_layout Standard
-\begin_inset CommandInset include
-LatexCommand lstinputlisting
-filename "catch.py"
-lstparams "caption={catch.py},label={python}"
+\begin_layout EndFrame
 
-\end_inset
+\end_layout
 
+\begin_layout BeginFrame
+类似的C++实现
+\end_layout
+
+\begin_layout EndFrame
 
 \end_layout
 
@@ -467,17 +468,11 @@ C#中有着更加神奇的方法，叫做Continuation。
 \end_layout
 
 \begin_layout Standard
-Continuation是一种控制结构：
+Continuation 是什么？简而言之，就是一种控制结构，利用它可以把当前的执行状态保存起来，以供以后调用。
 \end_layout
 
-\begin_layout Quotation
-A continuation reifies the program control state, i.e.
- the continuation is a data structure that represents the computational
- process at a given point in the process' execution; the created data structure
- can be accessed by the programming language, instead of being hidden in
- the runtime environment.
- Continuations are useful for encoding other control mechanisms in programming
- languages such as exceptions, generators, coroutines, and so on.
+\begin_layout Standard
+简单地说，现在你像持有一个普通对象一样持有一个执行环境，你可以把它保存到任何地方（不再被限制到栈上），并随时再进入到那个执行环境中继续先前中断的执行过程。
 \end_layout
 
 \begin_layout EndFrame
@@ -528,17 +523,41 @@ lstparams "caption={fac.cs}"
 \end_layout
 
 \begin_layout BeginFrame
+C#(3)
+\end_layout
+
+\begin_layout LyX-Code
+public static int FibonacciContinuation(int n, Func<int, int> continuation)
+ {
+\end_layout
+
+\begin_layout LyX-Code
+    if (n < 2) return continuation(n);
+\end_layout
+
+\begin_layout LyX-Code
+    return FibonacciContinuation(n - 1,
+\end_layout
+
+\begin_layout LyX-Code
+        r1 => FibonacciContinuation(n - 2,
+\end_layout
+
+\begin_layout LyX-Code
+            r2 => continuation(r1 + r2)));
+\end_layout
+
+\begin_layout LyX-Code
+}
+\end_layout
+
+\begin_layout BeginFrame
 C++
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset include
-LatexCommand lstinputlisting
-filename "fac-3.cpp"
-
-\end_inset
-
-
+\align center
+fac-3
 \end_layout
 
 \begin_layout EndFrame
@@ -550,13 +569,8 @@ C++(2)
 \end_layout
 
 \begin_layout Standard
-\begin_inset CommandInset include
-LatexCommand lstinputlisting
-filename "fib.cs"
-
-\end_inset
-
-
+\align center
+fib.cs
 \end_layout
 
 \begin_layout EndFrame
@@ -564,7 +578,51 @@ filename "fib.cs"
 \end_layout
 
 \begin_layout BeginFrame
-My Solution
+My Opinion 1
+\end_layout
+
+\begin_layout Standard
+传统语言中使用堆栈作为函数参数及局部变量存储位置，具有以下优势：
+\end_layout
+
+\begin_layout Itemize
+存储速度比堆要快，仅次于寄存器
+\end_layout
+
+\begin_layout Pause
+
+\end_layout
+
+\begin_layout Itemize
+栈数据能够共享
+\end_layout
+
+\begin_layout Pause
+
+\end_layout
+
+\begin_layout Itemize
+便于中断、恢复、嵌套
+\end_layout
+
+\begin_layout Pause
+
+\end_layout
+
+\begin_layout Standard
+缺点：
+\end_layout
+
+\begin_layout Itemize
+大小、生存时间固定
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+My Opinion 2
 \end_layout
 
 \begin_layout Standard
@@ -593,7 +651,269 @@ Stack
 
 \begin_layout Standard
 \align center
-No Stack
+Heap(or queue?)
+\end_layout
+
+\begin_layout Standard
+函数式语言：Erlang、Scheme等
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+Coroutine
+\end_layout
+
+\begin_layout Standard
+协程看上去与目前所讲的关系不大。
+\end_layout
+
+\begin_layout Pause
+
+\end_layout
+
+\begin_layout Standard
+事实上确实没太大关系。
+\end_layout
+
+\begin_layout Pause
+
+\end_layout
+
+\begin_layout Standard
+于是我现在开始真正介绍下背景。。
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+Background
+\end_layout
+
+\begin_layout Standard
+某天晚上洗衣服，我向蒋委询问new feature的素材，他跟我提到了下面这个东西(python代码):
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "1.py"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+Again
+\end_layout
+
+\begin_layout Standard
+如何用C和C++完成类似功能？
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+Solution1
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "1.c"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+小技巧
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "duff.c"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+Solution2
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "2.c"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+Solution2-2
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset include
+LatexCommand lstinputlisting
+filename "fib.c"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+define
+\end_layout
+
+\begin_layout Standard
+\align center
+define1.c
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+define(2)
+\end_layout
+
+\begin_layout Standard
+\align center
+define2.c
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+What can we do?
+\end_layout
+
+\begin_layout Standard
+下面我们来看一下蒋委问题的一个答案，考虑二叉树遍历，C#中我们可以通过高阶迭代器实现(tree.cs)
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+the same in C
+\end_layout
+
+\begin_layout Standard
+\align center
+tree.c
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+What can coroutine do?
+\end_layout
+
+\begin_layout Standard
+比较精妙，说不太清楚。
+\end_layout
+
+\begin_layout Pause
+
+\end_layout
+
+\begin_layout Standard
+目前资料中提到的比较多的是速度优势，特别是相比continuation。
+\end_layout
+
+\begin_layout Standard
+当然还有以下特点：
+\end_layout
+
+\begin_layout Itemize
+避免了传统的函数调用栈，使得无限递归成为可能
+\end_layout
+
+\begin_layout Itemize
+用户态的线程调度，极大降低上下文切换的开销，使得近乎无限并发的“微线程”成为可能
+\end_layout
+
+\begin_layout Itemize
+由于可以在用户态进行手工线程调度，这样可以避免锁机制
+\end_layout
+
+\begin_layout Pause
+
+\end_layout
+
+\begin_layout Standard
+举一个例子，服务器的发展是多进程=>多线程=>异步=>协程。而现在主流的高性能服务器都是基于异步的(lighttpd、nginx)，但实测协程速度更加惊人(py
+thon stackless)。
+\end_layout
+
+\begin_layout EndFrame
+
+\end_layout
+
+\begin_layout BeginFrame
+Reference
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-1"
+
+\end_inset
+
+维基百科
+\end_layout
+
+\begin_layout Bibliography
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "key-2"
+
+\end_inset
+
+各种网络blog
 \end_layout
 
 \begin_layout EndFrame

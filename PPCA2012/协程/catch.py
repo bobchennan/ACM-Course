@@ -1,7 +1,7 @@
 def tail_call_optimized(g):
   def func(*args, **kwargs):  
     f = sys._getframe()  
-    if f.f_back and f.f_back.f_back \  
+    if f.f_back and f.f_back.f_back \
       and f.f_back.f_back.f_code == f.f_code:  
       raise TailRecurseException(args, kwargs)  
     else:  

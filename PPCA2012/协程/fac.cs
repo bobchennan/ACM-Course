@@ -1,4 +1,5 @@
-public static int FactorialContinuation(int n, Func<int, int> continuation)
+public static int FactorialContinuation(int n, 
+	Func<int, int> continuation)
 {
     if (n == 0) return continuation(1);
     return FactorialContinuation(n - 1,

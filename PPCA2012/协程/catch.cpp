@@ -32,6 +32,6 @@ int fac2(int n,int v){
 
 int main(){
 	//test1();
-	printf("%d\n",fac(200000,1));
+	printf("%d\n",fac2(12,1));
 	return 0;
 }
