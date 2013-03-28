@@ -1,0 +1,318 @@
+package cnx.syntactic;
+
+import java.io.*;
+
+action code {:
+  static cnx.symbol.Symbol symbol(String s) {
+    return cnx.symbol.Symbol.symbol(s);
+  }
+:};
+
+parser code {:
+  public void report_error(String message, Object info) {
+    StringBuffer m = new StringBuffer("\tParsing error");
+    if (info instanceof java_cup.runtime.Symbol) {
+      java_cup.runtime.Symbol s = (java_cup.runtime.Symbol) info;
+
+      if (s.left >= 0) {
+        m.append(" in line " + (s.left +1 ));
+        if (s.right >= 0) {
+          m.append(", column " + (s.right + 1));
+        }
+      }
+    }
+    m.append(" : " + message);
+    System.err.println(m);
+  }
+
+  public Parser(InputStream inp) {
+    this(new Yylex(inp));
+  }
+:};
+
+terminal      TYPEDEF,VOID,CHAR,INT,STRUCT,UNION,IF,ELSE,WHILE,FOR,CONTINUE,BREAK,RETURN,SIZEOF;
+terminal      LPAREN,RPAREN,SEMICOLON,COMMA,ASSIGN,LBRACE,RBRACE,LBRACK,RBRACK,BITOR,INDEX,BITAND,LT,GT,PLUS,MINUS,ASTER,DIVIDE,MOD,BITNOT,NOT,DOT;
+terminal      OR,AND,EQ,NE,LE,GE,SHL,SHR,INC,DEC,PTR,ELLIPSIS;
+terminal      MULASS,DIVASS,MODASS,ADDASS,SUBASS,SHLASS,SHRASS,ANDASS,XORASS,ORASS;
+terminal      STR,CHR,NUM,ID;
+
+non terminal String cnx1,cnx2,cnx4,cnx16,cnx17,cnx18,cnx21,cnx22;
+non terminal String program,declaration,declarator,function_definition,parameters,declarators,init_declarators,init_declarator,initializer,type_specifier,struct_or_union,plain_declaration,plain_declarator,statement,expression_statement,compound_statement,selection_statement,iteration_statement,jump_statement,expression,assignment_operator,assignment_expression,constant_expression,logical_or_expression,logical_and_expression,inclusive_or_expression,exclusive_or_expression,and_expression,equality_expression,equality_operator,relational_expression,relational_operator,shift_expression,shift_operator,additive_expression,additive_operator,multiplicative_expression,multiplicative_operator,cast_expression,type_name,unary_expression,unary_operator,postfix_expression,postfix,arguments,primary_expression,constant;
+
+precedence left ELSE;
+precedence left COMMA;
+precedence right ASSIGN,MULASS,DIVASS,MODASS,ADDASS,SUBASS,SHLASS,SHRASS,ANDASS,ORASS,XORASS;
+precedence left OR;
+precedence left AND;
+precedence left BITOR;
+precedence left INDEX;
+precedence nonassoc EQ,NE;
+precedence nonassoc LT,LE,GE,GT;
+precedence left SHL,SHR;
+precedence left DIVIDE,MOD;
+precedence right SIZEOF,BITNOT;
+
+start with program;
+
+ program::= cnx22:x {:RESULT=new String(x);:} 
+        | program:x cnx22:y {:RESULT=new String(x+" "+y);:}
+        ;
+
+ cnx22::= declaration:x {:RESULT=new String(x);:} 
+      | function_definition:x {:RESULT=new String(x);:}
+      ;
+ 
+ declaration::= TYPEDEF type_specifier:x declarators:y SEMICOLON {:RESULT=new String("("+x+" "+y+")");:}
+            | type_specifier:x init_declarators:y SEMICOLON {:RESULT=new String("("+x+" "+y+")");:}
+            | type_specifier:x SEMICOLON {:RESULT=new String("("+x+")");:}
+            ;
+ 
+ function_definition::= type_specifier:x plain_declarator:y LPAREN parameters:z RPAREN compound_statement:s {:RESULT=new String("("+x+" "+y+z+s+")");:}
+                    | type_specifier:x plain_declarator:y LPAREN RPAREN compound_statement:z {:RESULT=new String("("+x+" "+y+"()"+z+")");:}
+                    ;
+ 
+ parameters::= plain_declaration:x cnx1:y COMMA ELLIPSIS {:RESULT=new String("("+x+" "+y+"...)");:}
+           | plain_declaration:x cnx1:y {:RESULT=new String("("+x+" "+y+")");:}
+           | plain_declaration:x COMMA ELLIPSIS {:RESULT=new String("("+x+"...)");:}
+           | plain_declaration:x {:RESULT=new String("("+x+")");:}
+           ;
+
+ cnx1::= COMMA plain_declaration:x {:RESULT=new String(x);:}
+     | cnx1:x COMMA plain_declaration:y {:RESULT=new String(x+" "+y);:}
+     ;
+ 
+ declarators::= declarators:x COMMA declarator:y {:RESULT=new String(x+" "+y);:}
+            | declarator:x {:RESULT=new String(x);:}
+            ;
+ 
+ init_declarators::= init_declarators:x COMMA init_declarator:y {:RESULT=new String(x+" "+y);:}
+                 | init_declarator:x {:RESULT=new String(x);:}
+                 ;
+ 
+ init_declarator::= declarator:x ASSIGN initializer:y {:RESULT=new String("(= "+x+" "+y+")");:}
+                | declarator:x {:RESULT=new String(x);:}
+                ;
+ 
+ initializer::= assignment_expression:x {:RESULT=new String(x);:}
+            | LBRACE initializer:x RBRACE {:RESULT=new String(x);:}
+            | LBRACE initializer:x cnx16:y RBRACE {:RESULT=new String(x+" "+y);:}
+            ;
+
+ cnx16::=COMMA initializer:x {:RESULT=new String(x);:}
+      | cnx16:x COMMA initializer:y {:RESULT=new String(x+" "+y);:}
+      ;
+ 
+ type_specifier::= VOID  {:RESULT=new String("void");:}
+               | CHAR  {:RESULT=new String("char");:}
+               | INT  {:RESULT=new String("int");:}
+               | ID:i {:RESULT=new String(i.toString());:}
+               | struct_or_union:x ID:i cnx17:y RBRACE {:RESULT=new String(x+" "+i+" "+y);:}
+               | struct_or_union:x cnx17:y RBRACE {:RESULT=new String(x+" "+y);:}
+               | struct_or_union:x ID:i {:RESULT=new String(x+" "+i);:}
+               ;
+
+ cnx17::=LBRACE type_specifier declarators:x SEMICOLON {:RESULT=new String(x);:}
+      | cnx17:x type_specifier:y declarators:z SEMICOLON{:RESULT=new String(x+" "+y+" "+z);:}
+      ;
+ 
+ struct_or_union::= STRUCT {:RESULT=new String("struct");:}
+                | UNION{:RESULT=new String("union");:}
+                ;
+ 
+ plain_declaration::= type_specifier:x declarator:y{:RESULT=new String(x+" "+y);:}
+                  ;
+ 
+ declarator::= plain_declarator:x LPAREN parameters:y RPAREN{:RESULT=new String(x+" "+y);:}
+           | plain_declarator:x LPAREN RPAREN{:RESULT=new String(x);:}
+           | plain_declarator:x cnx4:y{:RESULT=new String(x+" "+y);:}
+           | plain_declarator:x {:RESULT=new String(x);:}
+           ;
+
+ cnx4 ::= LBRACK constant_expression:x RBRACK  {:RESULT=new String("(["+x+"])");:}
+      | cnx4:x LBRACK constant_expression:y RBRACK {:RESULT=new String(x+"(["+y+"])");:}
+      ;
+ 
+ plain_declarator::= ASTER plain_declarator:x {:RESULT=new String("(* "+x+")");:}
+                 | ID:i  {:RESULT=new String(i.toString());:}
+                 ;
+
+ statement::= expression_statement:x {:RESULT=new String(x);:}
+          | compound_statement:x {:RESULT=new String(x);:}
+          | selection_statement:x {:RESULT=new String(x);:}
+          | iteration_statement:x {:RESULT=new String(x);:}
+          | jump_statement:x {:RESULT=new String(x);:}
+          ;
+ 
+ expression_statement::= expression:x SEMICOLON {:RESULT=new String(x);:}
+                     | SEMICOLON {:RESULT=new String("");:}
+                     ;
+ 
+ compound_statement::= LBRACE cnx18:x cnx21:y RBRACE {:RESULT=new String(x+" "+y);:}
+                   | LBRACE cnx21:x RBRACE {:RESULT=new String(x);:}
+                   | LBRACE cnx18:x RBRACE {:RESULT=new String(x);:}
+                   | LBRACE RBRACE;
+
+ cnx18::=declaration:x {:RESULT=new String(x);:}
+      | cnx18:x declaration:y {:RESULT=new String(x+" "+y);:}
+      ;
+
+ cnx21::=statement:x {:RESULT=new String(x);:}
+      | cnx21:x statement:y {:RESULT=new String(x+" "+y);:}
+      ;
+ 
+ selection_statement::= IF LPAREN expression:x RPAREN statement:y {:RESULT=new String("(if "+x+" "+y+")");:}
+                    | IF LPAREN expression:x RPAREN statement:y ELSE statement:z {:RESULT=new String("(if "+x+" "+y+" else "+z+")");:}
+                    ;
+ 
+ iteration_statement::= WHILE LPAREN expression:x RPAREN statement:y {:RESULT=new String("(while "+x+" "+y+")");:}
+                    | FOR LPAREN cnx2:x cnx2:y expression:z RPAREN statement:s {:RESULT=new String("(for "+x+" "+y+" "+z+" "+s+")");:}
+                    | FOR LPAREN cnx2:x cnx2:y  RPAREN statement:s {:RESULT=new String("(for "+x+" "+y+" "+s+")");:}
+                    ;
+ 
+ jump_statement::= CONTINUE SEMICOLON {:RESULT=new String("(continue)");:}
+               | BREAK SEMICOLON {:RESULT=new String("(break)");:}
+               | RETURN cnx2:x {:RESULT=new String("(return "+x+")");:}
+               ;
+
+ cnx2::=SEMICOLON  {:RESULT=new String("");:}
+     | expression:x SEMICOLON {:RESULT=new String(x);:}
+     ;
+
+ expression::= expression:x COMMA assignment_expression:y {:RESULT=new String(x+" "+y);:}
+           | assignment_expression:x {:RESULT=new String(x);:}
+           ;
+ 
+ assignment_expression::= logical_or_expression:x {:RESULT=new String(x);:}
+                      | unary_expression:x assignment_operator:y assignment_expression:z {:RESULT=new String("("+y+" "+x+" "+z+")");:}
+                      ;
+ 
+ assignment_operator::= ASSIGN  {:RESULT=new String("=");:}
+                    | MULASS  {:RESULT=new String("*=");:}
+                    | DIVASS  {:RESULT=new String("/=");:}
+                    | MODASS  {:RESULT=new String("%=");:}
+                    | ADDASS  {:RESULT=new String("+=");:}
+                    | SUBASS  {:RESULT=new String("-=");:}
+                    | SHLASS  {:RESULT=new String("<<=");:}
+                    | SHRASS  {:RESULT=new String(">>=");:}
+                    | ANDASS  {:RESULT=new String("&=");:}
+                    | XORASS  {:RESULT=new String("^=");:}
+                    | ORASS {:RESULT=new String("|=");:}
+                    ;
+ 
+ constant_expression::= logical_or_expression:x {:RESULT=new String(x);:}
+                    ;
+ 
+ logical_or_expression::= logical_or_expression:x OR logical_and_expression:y {:RESULT=new String("(|| "+x+" "+y+")");:}
+                      | logical_and_expression:x {:RESULT=new String(x);:}
+                      ;
+ 
+ logical_and_expression::= logical_and_expression:x AND inclusive_or_expression:y {:RESULT=new String("(&& "+x+" "+y+")");:}
+                       | inclusive_or_expression:x  {:RESULT=new String(x);:}
+                       ;
+
+ inclusive_or_expression::= inclusive_or_expression:x BITOR exclusive_or_expression:y {:RESULT=new String("(| "+x+" "+y+")");:}
+                        | exclusive_or_expression:x {:RESULT=new String(x);:}
+                        ;
+ 
+ exclusive_or_expression::= exclusive_or_expression:x INDEX and_expression:y {:RESULT=new String("(^"+x+" "+y+")");:}
+                        | and_expression:x {:RESULT=new String(x);:}
+                        ;
+ 
+ and_expression::= and_expression:x BITAND equality_expression:y {:RESULT=new String("(& "+x+" "+y+")");:}
+               | equality_expression:x {:RESULT=new String(x);:}
+               ;
+ 
+ equality_expression::= equality_expression:x equality_operator:y relational_expression:z {:RESULT=new String("("+y+" "+x+" "+z+")");:}
+                    | relational_expression:x {:RESULT=new String(x);:}
+                    ;
+ 
+ equality_operator::= EQ  {:RESULT=new String("==");:} 
+                  | NE {:RESULT=new String("!=");:}
+                  ;
+ 
+ relational_expression::= relational_expression:x relational_operator:y shift_expression:z {:RESULT=new String("("+y+" "+x+" "+z+")");:}
+                      | shift_expression:x {:RESULT=new String(x);:}
+                      ;
+ 
+ relational_operator::= LT  {:RESULT=new String("<");:}
+                    | GT  {:RESULT=new String(">");:}
+                    | LE  {:RESULT=new String("<=");:}
+                    | GE {:RESULT=new String(">=");:}
+                    ;
+ 
+ shift_expression::= shift_expression:x shift_operator:y additive_expression:z {:RESULT=new String("("+y+" "+x+" "+z+")");:}
+                 | additive_expression:x {:RESULT=new String(x);:}
+                 ;
+ 
+ shift_operator::= SHL  {:RESULT=new String("<<");:}
+               | SHR {:RESULT=new String(">>");:}
+               ;
+ 
+ additive_expression::= additive_expression:x additive_operator:y multiplicative_expression:z {:RESULT=new String("("+y+" "+x+" "+z+")");:}
+                    | multiplicative_expression:x {:RESULT=new String(x);:}
+                    ;
+ 
+ additive_operator::= PLUS  {:RESULT=new String("+");:}
+                  | MINUS {:RESULT=new String("-");:}
+                  ;
+ 
+ multiplicative_expression::= multiplicative_expression:x multiplicative_operator:y cast_expression:z {:RESULT=new String("("+y+" "+x+" "+z+")");:}
+                          | cast_expression:x {:RESULT=new String(x);:}
+                          ;
+ 
+ multiplicative_operator::= ASTER  {:RESULT=new String("*");:}
+                        | DIVIDE  {:RESULT=new String("/");:}
+                        | MOD {:RESULT=new String("%");:}
+                        ;
+ 
+ cast_expression::= unary_expression:x {:RESULT=new String(x);:}
+                | LPAREN type_name:x RPAREN cast_expression:y {:RESULT=new String("("+x+" "+y+")");:}
+                ;
+ 
+ type_name::= type_name:x ASTER {:RESULT=new String(x+"*");:}
+
+          | type_specifier:x {:RESULT=new String(x);:}
+          ;
+ 
+ unary_expression::= postfix_expression:x {:RESULT=new String(x);:}
+                 | INC unary_expression:x {:RESULT=new String("(++ "+x+")");:}
+                 | DEC unary_expression:x {:RESULT=new String("(-- "+x+")");:}
+                 | unary_operator:x cast_expression:y {:RESULT=new String("("+x+" "+y+")");:}
+                 | SIZEOF unary_expression:x {:RESULT=new String("(sizeof "+x+")");:}
+                 | SIZEOF LPAREN type_name:x RPAREN {:RESULT=new String("(sizeof "+x+")");:}
+                 ;
+ 
+ unary_operator::= BITAND  {:RESULT=new String("&");:}
+               | ASTER  {:RESULT=new String("*");:}
+               | PLUS  {:RESULT=new String("+");:}
+               | MINUS  {:RESULT=new String("-");:}
+               | BITNOT  {:RESULT=new String("~");:}
+               | NOT {:RESULT=new String("!");:}
+               ;
+ 
+ postfix_expression::= postfix_expression:x postfix:y {:RESULT=new String("("+x+" "+y+")");:}
+                   | primary_expression:x {:RESULT=new String(x);:}
+                   ;
+ 
+ postfix::= LBRACK expression:x RBRACK {:RESULT=new String("(["+x+"])");:}
+        | LPAREN arguments:x RPAREN {:RESULT=new String("("+x+")");:}
+        | LPAREN RPAREN {:RESULT=new String("()");:}
+        | DOT ID:i {:RESULT=new String("(."+i+")");:}
+        | PTR ID:i {:RESULT=new String("(->"+i+")");:}
+        | INC {:RESULT=new String("++");:}
+        | DEC {:RESULT=new String("--");:}
+        ;
+ 
+ arguments::= arguments:x COMMA assignment_expression:y {:RESULT=new String(x+" "+y);:}
+          | assignment_expression:x {:RESULT=new String(x);:}
+          ;
+ 
+ primary_expression::= ID:i {:RESULT=new String(i.toString());:}
+                   | constant:x {:RESULT=new String(x);:}
+                   | STR:i {:RESULT=new String(i.toString());:}
+                   | LPAREN expression:x RPAREN {:RESULT=new String("("+x+")");:}
+                   ;
+ 
+ constant::= NUM:i  {:RESULT=new String(i.toString());:}
+         | CHR:i  {:RESULT=new String(i.toString());:}
+         ;
