@@ -1,0 +1,14 @@
+unfinished:
+type_specifier::=
+               | struct_or_union:x ID:i LBRACE{:ParserTest.beginScope();:} structs:y RBRACE {:ParserTest.endScope();RESULT=new String(x+" "+i+" "+y);:}
+               | struct_or_union:x LBRACE{:ParserTest.beginScope();:} structs:y RBRACE {:ParserTest.endScope();RESULT=new String(x+" "+y);:}
+               | struct_or_union:x ID:i {:RESULT=new String(x+" "+i);:}
+
+postfix::= LBRACK expression:x RBRACK {:RESULT=new String("(["+x+"])");:}
+        | LPAREN arguments:x RPAREN {:RESULT=new String("("+x+")");:}
+        | LPAREN RPAREN {:RESULT=new String("()");:}
+        | DOT ID:i {:RESULT=new String("(."+i+")");:}
+        | PTR ID:i {:RESULT=new String("(->"+i+")");:}
+        | INC {:RESULT=new String("++");:}
+        | DEC {:RESULT=new String("--");:}
+        ;

@@ -1,19 +1,19 @@
-package appetizer.ast;
+package cnx.ast;
 
-import appetizer.symbol.Symbol;
+import cnx.symbol.Symbol;
 
 public class Program {
 
-	public Prog v = null;
-	public Program link = null;
+	public Prog _v = null;
+	public Program _link = null;
 
 	public Program(Program x, Prog y) {
-		link = x;
-		v = y;
+		_link = x;
+		_v = y;
 	}
 
 	public Program(Prog y){
-		link = null;
-		v = y;
+		_link = null;
+		_v = y;
 	}
 }

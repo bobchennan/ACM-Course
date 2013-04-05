@@ -14,6 +14,13 @@ public class Symbol {
 		return name;
 	}
 
+	public boolean equals(Object other) {
+		if (other instanceof Symbol) {
+			return name.equals(((Symbol) other).name);
+		}
+		return false;
+	}
+
 	private static java.util.Dictionary<String, Symbol> dict = new java.util.Hashtable<String, Symbol>();
 
 	/**

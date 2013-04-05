@@ -34,7 +34,7 @@ terminal      TYPEDEF,VOID,CHAR,INT,STRUCT,UNION,IF,ELSE,WHILE,FOR,CONTINUE,BREA
 terminal      LPAREN,RPAREN,SEMICOLON,COMMA,ASSIGN,LBRACE,RBRACE,LBRACK,RBRACK,BITOR,INDEX,BITAND,LT,GT,PLUS,MINUS,ASTER,DIVIDE,MOD,BITNOT,NOT,DOT;
 terminal      OR,AND,EQ,NE,LE,GE,SHL,SHR,INC,DEC,PTR,ELLIPSIS;
 terminal      MULASS,DIVASS,MODASS,ADDASS,SUBASS,SHLASS,SHRASS,ANDASS,XORASS,ORASS;
-terminal      STR,CHR,NUM,ID;
+terminal      STR,CHR,NUM,ID,TYPEID;
 
 non terminal String plain_declarations,fors,constant_expressions,initializers,structs,declarations,statements,prog;
 non terminal String program,declaration,declarator,function_definition,parameters,declarators,init_declarators,init_declarator,initializer,type_specifier,struct_or_union,plain_declaration,plain_declarator,statement,expression_statement,compound_statement,selection_statement,iteration_statement,jump_statement,expression,assignment_operator,assignment_expression,constant_expression,logical_or_expression,logical_and_expression,inclusive_or_expression,exclusive_or_expression,and_expression,equality_expression,equality_operator,relational_expression,relational_operator,shift_expression,shift_operator,additive_expression,additive_operator,multiplicative_expression,multiplicative_operator,cast_expression,type_name,unary_expression,unary_operator,postfix_expression,postfix,arguments,primary_expression,constant;
@@ -94,24 +94,23 @@ start with program;
                 ;
  
  initializer::= assignment_expression:x {:RESULT=new String(x);:}
-            | LBRACE initializer:x RBRACE {:RESULT=new String(x);:}
-            | LBRACE initializer:x initializers:y RBRACE {:RESULT=new String(x+" "+y);:}
+            | LBRACE {:ParserTest.beginScope();:} initializers:x RBRACE {:ParserTest.endScope();RESULT=new String(x);:}
             ;
 
- initializers::=COMMA initializer:x {:RESULT=new String(x);:}
+ initializers::=initializer:x {:RESULT=new String(x);:}
       | initializers:x COMMA initializer:y {:RESULT=new String(x+" "+y);:}
       ;
  
  type_specifier::= VOID  {:RESULT=new String("void");:}
                | CHAR  {:RESULT=new String("char");:}
                | INT  {:RESULT=new String("int");:}
-               | ID:i {:RESULT=new String(i.toString());:}
-               | struct_or_union:x ID:i structs:y RBRACE {:RESULT=new String(x+" "+i+" "+y);:}
-               | struct_or_union:x structs:y RBRACE {:RESULT=new String(x+" "+y);:}
+               | TYPEID:i {:RESULT=new String(i.toString());:}
+               | struct_or_union:x ID:i LBRACE{:ParserTest.beginScope();:} structs:y RBRACE {:ParserTest.endScope();RESULT=new String(x+" "+i+" "+y);:}
+               | struct_or_union:x LBRACE{:ParserTest.beginScope();:} structs:y RBRACE {:ParserTest.endScope();RESULT=new String(x+" "+y);:}
                | struct_or_union:x ID:i {:RESULT=new String(x+" "+i);:}
                ;
 
- structs::=LBRACE type_specifier declarators:x SEMICOLON {:RESULT=new String(x);:}
+ structs::=type_specifier declarators:x SEMICOLON {:RESULT=new String(x);:}
       | structs:x type_specifier:y declarators:z SEMICOLON{:RESULT=new String(x+" "+y+" "+z);:}
       ;
  
@@ -147,16 +146,13 @@ start with program;
                      | SEMICOLON {:RESULT=new String("");:}
                      ;
  
- compound_statement::= LBRACE declarations:x statements:y RBRACE {:RESULT=new String(x+" "+y);:}
-                   | LBRACE statements:x RBRACE {:RESULT=new String(x);:}
-                   | LBRACE declarations:x RBRACE {:RESULT=new String(x);:}
-                   | LBRACE RBRACE;
+ compound_statement::= LBRACE{:ParserTest.beginScope();:} declarations:x statements:y RBRACE {:ParserTest.endScope();RESULT=new String(x+" "+y);:};
 
- declarations::=declaration:x {:RESULT=new String(x);:}
+ declarations::= /* empty */
       | declarations:x declaration:y {:RESULT=new String(x+" "+y);:}
       ;
 
- statements::=statement:x {:RESULT=new String(x);:}
+ statements::= /* empty */
       | statements:x statement:y {:RESULT=new String(x+" "+y);:}
       ;
  

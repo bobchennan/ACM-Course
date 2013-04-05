@@ -1,4 +1,4 @@
-package appetizer.ast;
+package cnx.ast;
 
 public abstract class Prog {
 
