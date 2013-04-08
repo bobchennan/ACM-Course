@@ -34,10 +34,11 @@ terminal      TYPEDEF,VOID,CHAR,INT,STRUCT,UNION,IF,ELSE,WHILE,FOR,CONTINUE,BREA
 terminal      LPAREN,RPAREN,SEMICOLON,COMMA,ASSIGN,LBRACE,RBRACE,LBRACK,RBRACK,BITOR,INDEX,BITAND,LT,GT,PLUS,MINUS,ASTER,DIVIDE,MOD,BITNOT,NOT,DOT;
 terminal      OR,AND,EQ,NE,LE,GE,SHL,SHR,INC,DEC,PTR,ELLIPSIS;
 terminal      MULASS,DIVASS,MODASS,ADDASS,SUBASS,SHLASS,SHRASS,ANDASS,XORASS,ORASS;
-terminal      STR,CHR,NUM,ID,TYPEID;
+terminal      STR,CHR,NUM;
+terminal String ID,TYPEID;
 
 non terminal String plain_declarations,fors,constant_expressions,initializers,structs,declarations,statements,prog;
-non terminal String program,declaration,declarator,function_definition,parameters,declarators,init_declarators,init_declarator,initializer,type_specifier,struct_or_union,plain_declaration,plain_declarator,statement,expression_statement,compound_statement,selection_statement,iteration_statement,jump_statement,expression,assignment_operator,assignment_expression,constant_expression,logical_or_expression,logical_and_expression,inclusive_or_expression,exclusive_or_expression,and_expression,equality_expression,equality_operator,relational_expression,relational_operator,shift_expression,shift_operator,additive_expression,additive_operator,multiplicative_expression,multiplicative_operator,cast_expression,type_name,unary_expression,unary_operator,postfix_expression,postfix,arguments,primary_expression,constant;
+non terminal String program,declaration,declarator,function_definition,parameters,declarators,init_declarators,init_declarator,initializer,type_specifier,struct_or_union,plain_declaration,plain_declarator,statement,expression_statement,compound_statement,selection_statement,iteration_statement,jump_statement,expression,assignment_operator,assignment_expression,constant_expression,logical_or_expression,logical_and_expression,inclusive_or_expression,exclusive_or_expression,and_expression,equality_expression,equality_operator,relational_expression,relational_operator,shift_expression,shift_operator,additive_expression,additive_operator,multiplicative_expression,multiplicative_operator,cast_expression,type_name,unary_expression,unary_operator,postfix_expression,arguments,primary_expression,constant;
 
 precedence left ELSE;
 precedence left COMMA;
@@ -62,9 +63,9 @@ start with program;
       | function_definition:x {:RESULT=new String(x);:}
       ;
  
- declaration::= TYPEDEF type_specifier:x declarators:y SEMICOLON {:RESULT=new String("("+x+" "+y+")");:}
-            | type_specifier:x init_declarators:y SEMICOLON {:RESULT=new String("("+x+" "+y+")");:}
-            | type_specifier:x SEMICOLON {:RESULT=new String("("+x+")");:}
+ declaration::= TYPEDEF {:ParserTest.beginTypedef();:} type_specifier:x declarators:y SEMICOLON {:ParserTest.endTypedef();RESULT=new String("("+x+" "+y+")");:}
+            | type_specifier:x {:ParserTest.beginVardef();:}init_declarators:y SEMICOLON {:ParserTest.endVardef();RESULT=new String("("+x+" "+y+")");:}
+            | type_specifier:x SEMICOLON
             ;
  
  function_definition::= type_specifier:x plain_declarator:y LPAREN parameters:z RPAREN compound_statement:s {:RESULT=new String("("+x+" "+y+z+s+")");:}
@@ -94,7 +95,7 @@ start with program;
                 ;
  
  initializer::= assignment_expression:x {:RESULT=new String(x);:}
-            | LBRACE {:ParserTest.beginScope();:} initializers:x RBRACE {:ParserTest.endScope();RESULT=new String(x);:}
+            | LBRACE initializers:x RBRACE {:RESULT=new String(x);:}
             ;
 
  initializers::=initializer:x {:RESULT=new String(x);:}
@@ -105,17 +106,17 @@ start with program;
                | CHAR  {:RESULT=new String("char");:}
                | INT  {:RESULT=new String("int");:}
                | TYPEID:i {:RESULT=new String(i.toString());:}
-               | struct_or_union:x ID:i LBRACE{:ParserTest.beginScope();:} structs:y RBRACE {:ParserTest.endScope();RESULT=new String(x+" "+i+" "+y);:}
-               | struct_or_union:x LBRACE{:ParserTest.beginScope();:} structs:y RBRACE {:ParserTest.endScope();RESULT=new String(x+" "+y);:}
-               | struct_or_union:x ID:i {:RESULT=new String(x+" "+i);:}
+               | struct_or_union:x ID:i {:ParserTest.endRecorddef();:} LBRACE structs:y RBRACE {:RESULT=new String(x+" "+i+" "+y);:}
+               | struct_or_union:x  LBRACE {:ParserTest.endRecorddef();:} structs:y RBRACE {:RESULT=new String(x+" "+y);:}
+               | struct_or_union:x ID:i {:ParserTest.endRecorddef();RESULT=new String(x+" "+i);:}
                ;
 
  structs::=type_specifier declarators:x SEMICOLON {:RESULT=new String(x);:}
       | structs:x type_specifier:y declarators:z SEMICOLON{:RESULT=new String(x+" "+y+" "+z);:}
       ;
  
- struct_or_union::= STRUCT {:RESULT=new String("struct");:}
-                | UNION{:RESULT=new String("union");:}
+ struct_or_union::= STRUCT {:ParserTest.beginRecorddef();RESULT=new String("struct");:}
+                | UNION{:ParserTest.beginRecorddef();RESULT=new String("union");:}
                 ;
  
  plain_declaration::= type_specifier:x declarator:y{:RESULT=new String(x+" "+y);:}
@@ -132,7 +133,7 @@ start with program;
       ;
  
  plain_declarator::= ASTER plain_declarator:x {:RESULT=new String("(* "+x+")");:}
-                 | ID:i  {:RESULT=new String(i.toString());:}
+                 | ID:i  {:RESULT=new String(i.toString());if(ParserTest.isTypedef())ParserTest.addTypeID(i);:}
                  ;
 
  statement::= expression_statement:x {:RESULT=new String(x);:}
@@ -148,11 +149,11 @@ start with program;
  
  compound_statement::= LBRACE{:ParserTest.beginScope();:} declarations:x statements:y RBRACE {:ParserTest.endScope();RESULT=new String(x+" "+y);:};
 
- declarations::= /* empty */
+ declarations::= /* empty */ {:RESULT=new String("");:}
       | declarations:x declaration:y {:RESULT=new String(x+" "+y);:}
       ;
 
- statements::= /* empty */
+ statements::= /* empty */ {:RESULT=new String("");:}
       | statements:x statement:y {:RESULT=new String(x+" "+y);:}
       ;
  
@@ -285,25 +286,22 @@ start with program;
                | BITNOT  {:RESULT=new String("~");:}
                | NOT {:RESULT=new String("!");:}
                ;
- 
- postfix_expression::= postfix_expression:x postfix:y {:RESULT=new String("("+x+" "+y+")");:}
-                   | primary_expression:x {:RESULT=new String(x);:}
-                   ;
- 
- postfix::= LBRACK expression:x RBRACK {:RESULT=new String("(["+x+"])");:}
-        | LPAREN arguments:x RPAREN {:RESULT=new String("("+x+")");:}
-        | LPAREN RPAREN {:RESULT=new String("()");:}
-        | DOT ID:i {:RESULT=new String("(."+i+")");:}
-        | PTR ID:i {:RESULT=new String("(->"+i+")");:}
-        | INC {:RESULT=new String("++");:}
-        | DEC {:RESULT=new String("--");:}
-        ;
+                   
+ postfix_expression::= postfix_expression:x LBRACK expression:y RBRACK {:RESULT=new String("([] "+x+" "+y+")");:}
+        			| postfix_expression:x LPAREN arguments:y RPAREN {:RESULT=new String("(Func"+x+" "+y+")");:}
+        			| postfix_expression:x LPAREN RPAREN {:RESULT=new String("(Func"+x+")");:}
+        			| postfix_expression:x DOT ID:i {:RESULT=new String("(."+x+" "+i+")");:}
+        			| postfix_expression:x PTR ID:i {:RESULT=new String("(->"+x+" "+i+")");:}
+        			| postfix_expression:x INC {:RESULT=new String("("+x+"++"+")");:}
+        			| postfix_expression:x DEC {:RESULT=new String("("+x+"--"+")");:}
+        			| primary_expression:x {:RESULT=new String("("+x+")");:}
+        			;
  
  arguments::= arguments:x COMMA assignment_expression:y {:RESULT=new String(x+" "+y);:}
           | assignment_expression:x {:RESULT=new String(x);:}
           ;
  
- primary_expression::= ID:i {:RESULT=new String(i.toString());:}
+ primary_expression::= ID:i {:RESULT=i;:}
                    | constant:x {:RESULT=new String(x);:}
                    | STR:i {:RESULT=new String(i.toString());:}
                    | LPAREN expression:x RPAREN {:RESULT=new String("("+x+")");:}

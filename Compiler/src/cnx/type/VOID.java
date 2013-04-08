@@ -18,14 +18,4 @@ public final class VOID extends Type {
 	public boolean equals(Object other) {
 		return other instanceof VOID;
 	}
-
-	@Override
-	public boolean isArray() {
-		return false;
-	}
-
-	@Override
-	public boolean isRecord() {
-		return false;
-	}
 }

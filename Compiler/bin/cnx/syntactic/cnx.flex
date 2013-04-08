@@ -12,8 +12,6 @@ import java.io.*;
 
 %{
 	private boolean commentCount = false;
-	private boolean typedefAppear = false;
-	private boolean varDefine = false;
 
 	private void err(String message) {
 		System.out.println("Scanning error in line " + yyline + ", column " + yycolumn + ": " + message);
@@ -50,12 +48,12 @@ Whitespace = {LineTerm}|[ \t\f]
 	"/*" { System.out.println(yytext());commentCount = true; yybegin(YYCOMMENT); }
 	"*/" { err("Comment symbol do not match!"); }
 
-	"typedef" { typedefAppear=true;System.out.println(yytext());return tok(TYPEDEF); }
-	"void" { varDefine=true;System.out.println(yytext());return tok(VOID); }
-	"char" { varDefine=true;System.out.println(yytext());return tok(CHAR); }
-	"int" { varDefine=true;System.out.println(yytext());return tok(INT); }
-	"struct" { typedefAppear=true;System.out.println(yytext());return tok(STRUCT); }
-	"union" { typedefAppear=true;System.out.println(yytext());return tok(UNION); }
+	"typedef" { System.out.println(yytext());return tok(TYPEDEF); }
+	"void" { System.out.println(yytext());return tok(VOID); }
+	"char" { System.out.println(yytext());return tok(CHAR); }
+	"int" { System.out.println(yytext());return tok(INT); }
+	"struct" { System.out.println(yytext());return tok(STRUCT); }
+	"union" { System.out.println(yytext());return tok(UNION); }
 	"if" { System.out.println(yytext());return tok(IF); }
 	"else" { System.out.println(yytext());return tok(ELSE); }
 	"while" { System.out.println(yytext());return tok(WHILE); }
@@ -67,10 +65,10 @@ Whitespace = {LineTerm}|[ \t\f]
 
 	"(" { System.out.println(yytext());return tok(LPAREN); }
 	")" { System.out.println(yytext());return tok(RPAREN); }
-	";" { typedefAppear=false;varDefine=false;System.out.println(yytext());return tok(SEMICOLON); }
+	";" { System.out.println(yytext());return tok(SEMICOLON); }
 	"," { System.out.println(yytext());return tok(COMMA); }
 	"=" { System.out.println(yytext());return tok(ASSIGN); }
-	"{" { typedefAppear=false;varDefine=false;System.out.println(yytext());return tok(LBRACE); }
+	"{" { System.out.println(yytext());return tok(LBRACE); }
 	"}" { System.out.println(yytext());return tok(RBRACE); }
 	"[" { System.out.println(yytext());return tok(LBRACK); }
 	"]" { System.out.println(yytext());return tok(RBRACK); }
@@ -115,10 +113,13 @@ Whitespace = {LineTerm}|[ \t\f]
     \'.\' {System.out.println(yytext());return tok(CHR,yytext());}
     {Identifier} 
 	{
-		System.out.println(yytext());
-		if(typedefAppear)return tok(TYPEID,yytext());
-		else if(varDefine)return tok(ID,yytext());
-		else if(ParserTest.isTypeID(yytext()))return tok(TYPEID, yytext());
+		boolean ty=false;
+		if(ParserTest.isVardef())ty=false;
+		else if(ParserTest.isRecorddef())ty=false;
+		else if(ParserTest.isTypeID(yytext()))ty=true;
+		else ty=false;
+		System.out.println(yytext()+" "+(ty?"TYPE":"ID"));
+		if(ty)return tok(TYPEID,yytext());
 		else return tok(ID,yytext());
 	}
 	{DecInteger} { System.out.println(yytext());return tok(NUM, new Integer(yytext())); }

@@ -36,14 +36,4 @@ public class RECORD extends Type {
 		return false;
 	}
 
-	@Override
-	public boolean isArray() {
-		return false;
-	}
-
-	@Override
-	public boolean isRecord() {
-		return true;
-	}
-
 }

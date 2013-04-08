@@ -18,14 +18,4 @@ public final class CHAR extends Type {
 	public boolean equals(Object other) {
 		return other instanceof CHAR;
 	}
-
-	@Override
-	public boolean isArray() {
-		return false;
-	}
-
-	@Override
-	public boolean isRecord() {
-		return false;
-	}
 }

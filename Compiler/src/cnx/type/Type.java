@@ -9,9 +9,4 @@ public abstract class Type {
 	public boolean isNull(){
 		return this == NULL;
 	}
-	
-	public abstract boolean isArray();
-	
-	public abstract boolean isRecord();
-	
 }

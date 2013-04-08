@@ -6,6 +6,45 @@ import cnx.symbol.*;
 final class ParserTest {
 
 	private static Table types = new Table();
+	private static boolean typedef = false;
+	private static boolean vardef = false;
+	private static boolean recorddef = false;
+	
+	public static void beginTypedef(){
+		typedef = true;
+	}
+	
+	public static void endTypedef(){
+		typedef = false;
+	}
+	
+	public static boolean isTypedef(){
+		return typedef;
+	}
+	
+	public static void beginVardef(){
+		vardef = true;
+	}
+	
+	public static void endVardef(){
+		vardef = false;
+	}
+	
+	public static boolean isVardef(){
+		return vardef;
+	}
+	
+	public static void beginRecorddef(){
+		recorddef = true;
+	}
+	
+	public static void endRecorddef(){
+		recorddef = false;
+	}
+	
+	public static boolean isRecorddef(){
+		return recorddef;
+	}
 
 	public static void beginScope() {
 		types.beginScope();
@@ -15,11 +54,11 @@ final class ParserTest {
 		types.endScope();
 	}
 
-	public static boolean isTypeId(String s) {
+	public static boolean isTypeID(String s) {
 		return types.get(Symbol.symbol(s)) != null;
 	}
 
-	public static void addTypeId(String s) {
+	public static void addTypeID(String s) {
 		types.put(Symbol.symbol(s), s);
 	}
 

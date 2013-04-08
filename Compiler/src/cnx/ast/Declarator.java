@@ -6,9 +6,11 @@ public class Declarator {
 	public Plain_declarator _x = null;
 	public Parameters _arg = null;
 	public Constant_expressions _cexp = null;
+	public boolean _isFunc = false;
 	
-	public Declarator(Plain_declarator x){
+	public Declarator(Plain_declarator x, boolean func){
 		_x = x;
+		_isFunc = func;
 	}
 	public Declarator(Plain_declarator x, Parameters y){
 		_x = x;

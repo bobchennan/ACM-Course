@@ -14,14 +14,4 @@ public class POINTER extends Type {
 		}
 		return false;
 	}
-
-	@Override
-	public boolean isArray() {
-		return false;
-	}
-
-	@Override
-	public boolean isRecord() {
-		return false;
-	}
 }

@@ -18,14 +18,4 @@ public final class INT extends Type {
 	public boolean equals(Object other) {
 		return other instanceof INT;
 	}
-
-	@Override
-	public boolean isArray() {
-		return false;
-	}
-
-	@Override
-	public boolean isRecord() {
-		return false;
-	}
 }
