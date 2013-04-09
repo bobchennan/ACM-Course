@@ -12,6 +12,7 @@ import java.io.*;
 
 %{
 	private boolean commentCount = false;
+	private StringBuffer str = new StringBuffer();
 
 	private void err(String message) {
 		System.out.println("Scanning error in line " + yyline + ", column " + yycolumn + ": " + message);
@@ -41,10 +42,12 @@ DecInteger = [0-9]+|0[xX][a-zA-Z0-9]+
 Whitespace = {LineTerm}|[ \t\f]
 
 %state	YYCOMMENT
+%state  YYSTRING
 
 %%
 
 <YYINITIAL> {
+    \"	 {str.setLength(0); yybegin(YYSTRING);}
 	"/*" { System.out.println(yytext());commentCount = true; yybegin(YYCOMMENT); }
 	"*/" { err("Comment symbol do not match!"); }
 
@@ -109,8 +112,7 @@ Whitespace = {LineTerm}|[ \t\f]
     "&=" { System.out.println(yytext());return tok(ANDASS); }
     "^=" { System.out.println(yytext());return tok(XORASS); }
     "|=" { System.out.println(yytext());return tok(ORASS); }
-    \".*\" { System.out.println(yytext());return tok(STR,yytext()); }
-    \'.\' {System.out.println(yytext());return tok(CHR,yytext());}
+    \'.\' {System.out.println(yytext());return tok(CHR,new String(yytext()).charAt(1));}
     {Identifier} 
 	{
 		boolean ty=false;
@@ -132,4 +134,20 @@ Whitespace = {LineTerm}|[ \t\f]
 	"/*" { commentCount=true; }
 	"*/" { if (commentCount == true) {commentCount=false;yybegin(YYINITIAL);} }
 	[^]  {throw new RuntimeException("Illegal character " + yytext() + " in line " + (yyline + 1) + ", column " + (yycolumn + 1)); }
+}
+
+<YYSTRING> {
+	\"	{yybegin(YYINITIAL); return tok(STR, str.toString());}
+	\\[0-9]{3}	{
+		int n = Integer.parseInt(yytext().substring(1, 4));
+		if (n > 255) err("String presentation error (\\ddd exceeded 255)!");
+		else str.append((char) n);
+	}
+	[^\n\t\"\\]+	{str.append(yytext());}
+	\\t				{str.append('\t');}
+	\\n				{str.append('\n');}
+	\\\"			{str.append('\"');}
+	\\\\			{str.append('\\');}
+	{LineTerm}		{err("String presentation error (unexpected line terminator)!");}
+	\\{Whitespace}+\\	{ /* do nothing */ }
 }

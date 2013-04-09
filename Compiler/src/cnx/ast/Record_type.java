@@ -1,14 +1,15 @@
 package cnx.ast;
 
 import cnx.env.Env;
+import cnx.symbol.Symbol;
 import cnx.type.Type;
 
 public class Record_type extends Type_specifier {
 	public boolean _isSt = false;
-	public Id _sym = null;
+	public Symbol _sym = null;
 	public Structs _x = null;
 	
-	public Record_type(boolean isSt, Id sym){
+	public Record_type(boolean isSt, Symbol sym){
 		_isSt = isSt;
 		_sym = sym;
 	}
@@ -16,7 +17,7 @@ public class Record_type extends Type_specifier {
 		_isSt = isSt;
 		_x = x;
 	}
-	public Record_type(boolean isSt, Id sym, Structs x){
+	public Record_type(boolean isSt, Symbol sym, Structs x){
 		_isSt = isSt;
 		_sym = sym;
 		_x = x;
@@ -24,7 +25,7 @@ public class Record_type extends Type_specifier {
 
 	@Override
 	public Type toType(Env env) {
-		return null;
+		
 	}
 
 }

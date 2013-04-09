@@ -14,6 +14,6 @@ public class Id_type extends Type_specifier {
 	
 	@Override
 	public Type toType(Env env) {
-		return TypeEntry.transferTypeEntry(env.getEntry(_sym)).type;
+		return (Type)(env.tEnv.get(_sym));
 	}
 }

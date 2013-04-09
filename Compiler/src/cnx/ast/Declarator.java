@@ -8,13 +8,14 @@ public class Declarator {
 	public Constant_expressions _cexp = null;
 	public boolean _isFunc = false;
 	
-	public Declarator(Plain_declarator x, boolean func){
+	public Declarator(Plain_declarator x, boolean isFunc){
 		_x = x;
-		_isFunc = func;
+		_isFunc = isFunc;
 	}
 	public Declarator(Plain_declarator x, Parameters y){
 		_x = x;
 		_arg = y;
+		_isFunc = true;
 	}
 	public Declarator(Plain_declarator x, Constant_expressions y){
 		_x = x;

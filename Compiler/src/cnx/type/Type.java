@@ -9,4 +9,6 @@ public abstract class Type {
 	public boolean isNull(){
 		return this == NULL;
 	}
+	
+	public abstract boolean equals(Object _ty);
 }
