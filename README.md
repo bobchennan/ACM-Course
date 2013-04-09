@@ -1,4 +1,4 @@
 ACM-Course
 ==========
 
-the course of ACM
+the course of ACM class
