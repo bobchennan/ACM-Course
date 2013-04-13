@@ -1,17 +1,18 @@
 package cnx.ast;
 
 import cnx.symbol.Symbol;
+import java.util.*;
 
 public class Initializers {
-	public Initializer _x = null;
-	public Initializers _link = null;
+	public List<Initializer> _l;
 	
 	public Initializers(Initializer x){
-		_x = x;
+		_l = new ArrayList<Initializer>();
+		_l.add(x);
 	}
 	
-	public Initializers(Initializers y, Initializer x){
-		_x = x;
-		_link = y;
+	public Initializers add(Initializer x){
+		_l.add(x);
+		return this;
 	}
 }

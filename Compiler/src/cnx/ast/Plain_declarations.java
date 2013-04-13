@@ -1,16 +1,17 @@
 package cnx.ast;
 
 import cnx.symbol.Symbol;
+import java.util.*;
 
 public class Plain_declarations {
-	public Plain_declaration _x = null;
-	public Plain_declarations _link = null;
+	public List<Plain_declaration> _l;
 	
 	public Plain_declarations(Plain_declaration x){
-		_x = x;
+		_l = new ArrayList<Plain_declaration>();
+		_l.add(x);
 	}
-	public Plain_declarations(Plain_declarations y, Plain_declaration x){
-		_link = y;
-		_x = x;
+	public Plain_declarations add(Plain_declaration x){
+		_l.add(x);
+		return this;
 	}
 }

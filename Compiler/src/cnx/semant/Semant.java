@@ -75,17 +75,12 @@ public final class Semant {
 			checkDeclarators(ty,x._v);
 	}
 	public void checkDeclarators(Type l, Declarators x){
-		while(x != null){
-			checkDeclarator(l, x._x, true);
-			x = x._link;
-		}
+		for(int i = 0; x != null && i < x._l.size(); ++i)
+			checkDeclarator(l, x._l.get(i), true);
 	}
 	public void checkInit_declarators(Type l, Init_declarators x){
-		if(l.equals(VOID.getInstance()))error();
-		while(x != null){
-			checkInit_declarator(l, x._x);
-			x = x._link;
-		}
+		for(int i = 0; x != null && i < x._l.size(); ++i)
+			checkInit_declarator(l, x._l.get(i));
 	}
 	public Type checkDeclarator(Type l, Declarator x, boolean isTypedef){
 		Plain_declarator t = x._x;
@@ -100,11 +95,10 @@ public final class Semant {
 		}
 		else {
 			Constant_expressions s = x._cexp;
-			while(s != null){
-				Type _ty = checkConstant_expression(s._x);
+			for(int i = 0; s != null && i < s._l.size(); ++i){
+				Type _ty = checkConstant_expression(s._l.get(i));
 				if(!_ty.equals(INT.getInstance())&&!_ty.equals(CHAR.getInstance()))error();
 				l = new ARRAY(l,0);
-				s = s._link;
 			}
 			if(isTypedef){
 				if(!env.tEnv.put(t._sym, l))
@@ -137,8 +131,8 @@ public final class Semant {
 			Type ret = INT.getInstance();
 			int cnt = 0;
 			Initializers t = x._y;
-			while(t._link != null){
-				Type tmp = checkInitializer(t._x);
+			for(int i = 0; t != null && i < t._l.size(); ++i){
+				Type tmp = checkInitializer(t._l.get(i));
 				if(ret.equals(INT.getInstance())&&tmp.equals(CHAR.getInstance()))
 					tmp=INT.getInstance();
 				if(!tmp.equals(ret)){
@@ -156,9 +150,8 @@ public final class Semant {
 		RECORD.RecordField v = checkPlain_declaration(x._x);
 		ret.fields.add(v);
 		Plain_declarations y = x._xs;
-		while(y != null){
-			v = checkPlain_declaration(y._x);
-			y = y._link;
+		for(int i = 0; y != null && i < y._l.size(); ++i){
+			v = checkPlain_declaration(y._l.get(i));
 			ret.fields.add(v);
 		}
 		return ret;
@@ -175,26 +168,21 @@ public final class Semant {
 		if(y._isFunc == true)error();
 		else {
 			Constant_expressions tt = y._cexp;
-			while(tt != null){
-				Type _ty = checkConstant_expression(tt._x);
+			for(int i = 0; tt != null && i < tt._l.size(); ++i){
+				Type _ty = checkConstant_expression(tt._l.get(i));
 				if(!_ty.equals(INT.getInstance())&&!_ty.equals(CHAR.getInstance()))error();
 				ty = new ARRAY(ty, 0);
-				tt = tt._link;
 			}
 		}
 		return new RECORD.RecordField(ty, t._sym, 0);
 	}
 	public void checkCompound_statement(Compound_statement x){
 		Declarations s = x._x;
-		while(s != null){
-			checkDeclaration(s._x);
-			s = s._link;
-		}
+		for(int i = 0; s != null && i < s._l.size(); ++i)
+			checkDeclaration(s._l.get(i));
 		Statements t = x._y;
-		while(t != null){
-			checkStatement(t._x);
-			t = t._link;
-		}
+		for(int i = 0; t != null && i < t._l.size(); ++i)
+			checkStatement(t._l.get(i));
 	}
 	public void checkStatement(Statement x){
 		if(x instanceof Expression_statement)
@@ -254,9 +242,8 @@ public final class Semant {
 	}
 	public Type checkExpression(Expression x){
 		Type ret = VOID.getInstance();
-		while(x != null){
-			ret = checkAssignment_expression(x._x);
-			x = x._link;
+		for(int i = 0; i < x._l.size(); ++i){
+			ret = checkAssignment_expression(x._l.get(i));
 		}
 		return ret;
 	}
@@ -517,28 +504,22 @@ public final class Semant {
 		return VOID.getInstance();
 	}
 	public Type checkFunction_expression(Function_expression x){
-		List<Type> tyt;
-		tyt = new ArrayList<Type>();
 		if(!(x._x instanceof Id))error();
 		Entry f = (Entry) env.vEnv.get(((Id)x._x)._sym);
 		if(!(f instanceof FunEntry))error();
 		Arguments y = x._y;
-		for(;y != null;){
-			tyt.add(checkAssignment_expression(y._x));
-			y = y._link;
-		}
-		Collections.reverse(tyt);
+		int cnt = (y == null)?0:y._l.size();
 		for(int i = 0; i < ((FunEntry)f).formals.fields.size(); ++i){
-			if(i > tyt.size()){
+			if(i > cnt){
 				error();
 				break;
 			}
 			Type tmp = ((FunEntry)f).formals.fields.get(i).type;
-			if(!tmp.equals(tyt.get(i)))
+			if(!tmp.equals(checkAssignment_expression(y._l.get(i))))
 				error();
 		}
 		if(!((FunEntry) f).nc)
-			if(((FunEntry)f).formals.fields.size() < tyt.size())
+			if(((FunEntry)f).formals.fields.size() < cnt)
 				error();
 		return ((FunEntry)f).result;
 	}

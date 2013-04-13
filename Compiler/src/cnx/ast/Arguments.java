@@ -1,16 +1,17 @@
 package cnx.ast;
 
 import cnx.symbol.Symbol;
+import java.util.*;
 
 public class Arguments {
-	public Assignment_expression _x = null;
-	public Arguments _link = null;
+	public List<Assignment_expression> _l;
 	
 	public Arguments(Assignment_expression x){
-		_x = x;
+		_l = new ArrayList<Assignment_expression>();
+		_l.add(x);
 	}
-	public Arguments(Arguments y, Assignment_expression x){
-		_x = x;
-		_link = y;
+	public Arguments add(Assignment_expression x){
+		_l.add(x);
+		return this;
 	}
 }

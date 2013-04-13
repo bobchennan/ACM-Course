@@ -1,16 +1,17 @@
 package cnx.ast;
 
 import cnx.symbol.Symbol;
+import java.util.*;
 
 public class Declarators {
-	public Declarators _link = null;
-	public Declarator _x = null;
+	public List<Declarator> _l;
 	
 	public Declarators(Declarator x){
-		_x = x;
+		_l = new ArrayList<Declarator>();
+		_l.add(x);
 	}
-	public Declarators(Declarators y, Declarator x){
-		_x = x;
-		_link = y;
+	public Declarators add(Declarator x){
+		_l.add(x);
+		return this;
 	}
 }

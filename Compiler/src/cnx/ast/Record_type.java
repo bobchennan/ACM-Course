@@ -30,24 +30,24 @@ public class Record_type extends Type_specifier {
 		env.beginScope();
 		RECORD ret=new RECORD(_sym);
 		Type tmp;
-		while(_x != null){
-			if(_x._ty instanceof Id_type){
-				if(((Id_type)_x._ty)._sym.equals(_sym))
+		for(int i = 0; i < _x._l1.size(); ++i){
+			if(_x._l1.get(i) instanceof Id_type){
+				if(((Id_type)_x._l1.get(i))._sym.equals(_sym))
 					tmp = ret;
 				else{
-					tmp = (Type) env.tEnv.get(((Record_type)_x._ty)._sym);
+					tmp = (Type) env.tEnv.get(((Record_type)_x._l1.get(i))._sym);
 					if(tmp == null){
 						System.out.println('1');
 						System.exit(1);
 					}
 				}
 			}
-			else tmp = _x._ty.toType(env);
+			else tmp = _x._l1.get(i).toType(env);
 			
-			Declarators x = _x._x;
+			Declarators x = _x._l2.get(i);
 			Type tmp2;
-			while(x != null){
-				Declarator y = x._x;
+			for(int j = 0; j < x._l.size(); ++j){
+				Declarator y = x._l.get(j);
 				tmp2 = tmp;
 				Plain_declarator t = y._x;
 				while(t._link != null){
@@ -60,18 +60,15 @@ public class Record_type extends Type_specifier {
 					Error.error();
 				else{
 					Constant_expressions s = y._cexp;
-					while(s != null){
+					for(int k = 0; s != null && k < s._l.size(); ++k){
 						/* to check */
 						tmp2 = new ARRAY(tmp2,0);
-						s = s._link;
 					}
 				}
 				ret.fields.add(new RECORD.RecordField(tmp2,t._sym,0));
 				if(!env.vEnv.put(t._sym, tmp2))
 					Error.error();
-				x = x._link;
 			}
-			_x = _x._link;
 		}
 		env.endScope();
 		return ret;

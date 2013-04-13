@@ -141,14 +141,14 @@ start with program;
            ;
 
  plain_declarations::= COMMA plain_declaration:x {:RESULT=new Plain_declarations(x);:}
-     | plain_declarations:x COMMA plain_declaration:y {:RESULT=new Plain_declarations(x,y);:}
+     | plain_declarations:x COMMA plain_declaration:y {:RESULT=x.add(y);:}
      ;
  
- declarators::= declarators:x COMMA declarator:y {:RESULT=new Declarators(x,y);:}
+ declarators::= declarators:x COMMA declarator:y {:RESULT=x.add(y);:}
             | declarator:x {:RESULT=new Declarators(x);:}
             ;
  
- init_declarators::= init_declarators:x COMMA init_declarator:y {:RESULT=new Init_declarators(x,y);:}
+ init_declarators::= init_declarators:x COMMA init_declarator:y {:RESULT=x.add(y);:}
                  | init_declarator:x {:ParserTest.beginVardef();RESULT=new Init_declarators(x);:}
                  ;
  
@@ -161,7 +161,7 @@ start with program;
             ;
 
  initializers::=initializer:x {:RESULT=new Initializers(x);:}
-      | initializers:x COMMA initializer:y {:RESULT=new Initializers(x,y);:}
+      | initializers:x COMMA initializer:y {:RESULT=x.add(y);:}
       ;
  
  type_specifier::= VOID  {:RESULT=new VoidType();:}
@@ -174,7 +174,7 @@ start with program;
                ;
 
  structs::=type_specifier:x declarators:y SEMICOLON {:RESULT=new Structs(x,y);:}
-      | structs:x type_specifier:y declarators:z SEMICOLON{:RESULT=new Structs(x,y,z);:}
+      | structs:x type_specifier:y declarators:z SEMICOLON{:RESULT=x.add(y,z);:}
       ;
  
  struct_or_union::= STRUCT {:ParserTest.beginRecorddef();RESULT=true;:}
@@ -191,7 +191,7 @@ start with program;
            ;
 
  constant_expressions ::= LBRACK constant_expression:x RBRACK  {:RESULT=new Constant_expressions(x);:}
-      | constant_expressions:x LBRACK constant_expression:y RBRACK {:RESULT=new Constant_expressions(x,y);:}
+      | constant_expressions:x LBRACK constant_expression:y RBRACK {:RESULT=x.add(y);:}
       ;
  
  plain_declarator::= ASTER plain_declarator:x {:RESULT=new Plain_declarator(x);:}
@@ -211,12 +211,12 @@ start with program;
  
  compound_statement::= LBRACE{:ParserTest.beginScope();:} declarations:x statements:y RBRACE {:ParserTest.endScope();RESULT=new Compound_statement(x,y);:};
 
- declarations::= /* empty */ {:RESULT=null;:}
-      | declarations:x declaration:y {:RESULT=new Declarations(x,y);:}
+ declarations::= /* empty */ {:RESULT=new Declarations();:}
+      | declarations:x declaration:y {:RESULT=x.add(y);:}
       ;
 
- statements::= /* empty */ {:RESULT=null;:}
-      | statements:x statement:y {:RESULT=new Statements(x,y);:}
+ statements::= /* empty */ {:RESULT=new Statements();:}
+      | statements:x statement:y {:RESULT=x.add(y);:}
       ;
  
  selection_statement::= IF LPAREN expression:x RPAREN statement:y {:RESULT=new Selection_statement(x,y);:}
@@ -237,7 +237,7 @@ start with program;
      | expression:x SEMICOLON {:RESULT=x;:}
      ;
 
- expression::= expression:x COMMA assignment_expression:y {:RESULT=new Expression(x,y);:}
+ expression::= expression:x COMMA assignment_expression:y {:RESULT=x.add(y);:}
            | assignment_expression:x {:RESULT=new Expression(x);:}
            ;
  
@@ -359,7 +359,7 @@ start with program;
         			| primary_expression:x {:RESULT=x;:}
         			;
  
- arguments::= arguments:x COMMA assignment_expression:y {:RESULT=new Arguments(x,y);:}
+ arguments::= arguments:x COMMA assignment_expression:y {:RESULT=x.add(y);:}
           | assignment_expression:x {:RESULT=new Arguments(x);:}
           ;
  

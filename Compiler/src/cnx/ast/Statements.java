@@ -1,18 +1,16 @@
 package cnx.ast;
 
 import cnx.symbol.Symbol;
+import java.util.*;
 
 public class Statements {
-	public Statement _x = null;
-	public Statements _link = null;
+	public List<Statement> _l;
 	
 	public Statements(){
+		_l = new ArrayList<Statement>();
 	}
-	public Statements(Statement x){
-		_x = x;
-	}
-	public Statements(Statements y, Statement x){
-		_x = x;
-		_link = y;
+	public Statements add(Statement x){
+		_l.add(x);
+		return this;
 	}
 }
