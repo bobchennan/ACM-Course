@@ -1,4 +1,4 @@
 package cnx.env;
 
-interface Entry {
+public interface Entry {
 }

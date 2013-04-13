@@ -24,14 +24,22 @@ public class Env {
 	}
 	
 	private void initVEnv(){
+		vEnv = new Table();
+		RECORD tmp = new RECORD(sym(""));
+		tmp.fields.add(new RECORD.RecordField(new POINTER(CHAR.getInstance()), sym("arg"), 0));
+		vEnv.put(sym("printf"), new FunEntry(tmp, INT.getInstance(), true));
+		vEnv.put(sym("scanf"), new FunEntry(tmp, INT.getInstance(), true));
+		RECORD tmp2 = new RECORD(sym(""));
+		tmp2.fields.add(new RECORD.RecordField(INT.getInstance(), sym("arg"), 0));
+		vEnv.put(sym("malloc"), new FunEntry(tmp2, new POINTER(VOID.getInstance()), false));
 	}
 	
-	private void beginScope(){
+	public void beginScope(){
 		tEnv.beginScope();
-		vEnv.endScope();
+		vEnv.beginScope();
 	}
 	
-	private void endScope(){
+	public void endScope(){
 		tEnv.endScope();
 		vEnv.endScope();
 	}

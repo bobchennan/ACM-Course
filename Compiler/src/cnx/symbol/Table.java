@@ -4,11 +4,13 @@ class Binder {
 	Object value;
 	Symbol prevtop;
 	Binder tail;
+	int lv;
 
-	Binder(Object v, Symbol p, Binder t) {
+	Binder(Object v, Symbol p, Binder t,int level) {
 		value = v;
 		prevtop = p;
 		tail = t;
+		lv = level;
 	}
 }
 
@@ -22,6 +24,7 @@ public class Table {
 	private java.util.Dictionary<Symbol, Binder> dict = new java.util.Hashtable<Symbol, Binder>();
 	private Symbol top = null;
 	private Binder marks = null;
+	private int level = 0;
 
 	/**
 	 * Gets the object associated with the specified symbol in the Table.
@@ -37,16 +40,22 @@ public class Table {
 	/**
 	 * Puts the specified value into the Table, bound to the specified Symbol.
 	 */
-	public void put(Symbol key, Object value) {
-		dict.put(key, new Binder(value, top, dict.get(key)));
+	public boolean put(Symbol key, Object value) {
+		Object tmp = dict.get(key);
+		dict.put(key, new Binder(value, top, dict.get(key), level));
 		top = key;
+		if(tmp instanceof Binder)
+			if(((Binder)tmp).lv == level)
+				return false;
+		return true;
 	}
 
 	/**
 	 * Remembers the current state of the Table.
 	 */
 	public void beginScope() {
-		marks = new Binder(null, top, marks);
+		++ level;
+		marks = new Binder(null, top, marks, level);
 		top = null;
 	}
 
@@ -55,6 +64,7 @@ public class Table {
 	 * not already been ended.
 	 */
 	public void endScope() {
+		-- level;
 		while (top != null) {
 			Binder e = dict.get(top);
 			if (e.tail != null)

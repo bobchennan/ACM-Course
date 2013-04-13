@@ -10,7 +10,7 @@ action code {:
 :};
 
 parser code {:
-  public void report_error(String message, Object info) {
+  public void report_error(String message, Object info) {/*
     StringBuffer m = new StringBuffer("\tParsing error");
     if (info instanceof java_cup.runtime.Symbol) {
       java_cup.runtime.Symbol s = (java_cup.runtime.Symbol) info;
@@ -23,12 +23,20 @@ parser code {:
       }
     }
     m.append(" : " + message);
-    System.err.println(m);
+    System.err.println(m);*/
   }
+	public void report_fatal_error(String message, Object info) {
+		fatalError = true;
+		report_error(message, info);
+		System.exit(1);
+	}
 
-  public Parser(InputStream inp) {
-    this(new Yylex(inp));
-  }
+	public boolean error = false;
+	public boolean fatalError = false;
+
+	public Parser(InputStream inp) {
+		this(new Yylex(inp));
+	}
 :};
 
 terminal      TYPEDEF,VOID,CHAR,INT,STRUCT,UNION,IF,ELSE,WHILE,FOR,CONTINUE,BREAK,RETURN,SIZEOF;
@@ -118,7 +126,7 @@ start with program;
       ;
  
  declaration::= TYPEDEF {:ParserTest.beginTypedef();:} type_specifier:x declarators:y SEMICOLON {:ParserTest.endTypedef();RESULT=new Declaration(x,y);:}
-            | type_specifier:x {:ParserTest.beginVardef();:}init_declarators:y SEMICOLON {:ParserTest.endVardef();RESULT=new Declaration(x,y);:}
+            | type_specifier:x init_declarators:y SEMICOLON {:ParserTest.endVardef();RESULT=new Declaration(x,y);:}
             | type_specifier:x SEMICOLON {:RESULT=new Declaration(x);:}
             ;
  
@@ -141,7 +149,7 @@ start with program;
             ;
  
  init_declarators::= init_declarators:x COMMA init_declarator:y {:RESULT=new Init_declarators(x,y);:}
-                 | init_declarator:x {:RESULT=new Init_declarators(x);:}
+                 | init_declarator:x {:ParserTest.beginVardef();RESULT=new Init_declarators(x);:}
                  ;
  
  init_declarator::= declarator:x ASSIGN initializer:y {:RESULT=new Init_declarator(x,y);:}
@@ -216,8 +224,8 @@ start with program;
                     ;
  
  iteration_statement::= WHILE LPAREN expression:x RPAREN statement:y {:RESULT=new While_statement(x,y);:}
-                    | FOR LPAREN fors:x fors:y expression:z RPAREN statement:s {:RESULT=new For_statement(x,y,z);:}
-                    | FOR LPAREN fors:x fors:y  RPAREN statement:s {:RESULT=new For_statement(x,y,null);:}
+                    | FOR LPAREN fors:x fors:y expression:z RPAREN statement:s {:RESULT=new For_statement(x,y,z,s);:}
+                    | FOR LPAREN fors:x fors:y  RPAREN statement:s {:RESULT=new For_statement(x,y,null,s);:}
                     ;
  
  jump_statement::= CONTINUE SEMICOLON {:RESULT=new Continue_statement();:}
@@ -355,7 +363,7 @@ start with program;
           | assignment_expression:x {:RESULT=new Arguments(x);:}
           ;
  
- primary_expression::= ID:i {:RESULT=new ID(symbol(i));:}
+ primary_expression::= ID:i {:RESULT=new Id(symbol(i));:}
                    | constant:x {:RESULT=x;:}
                    | STR:i {:RESULT=new StringLiteral(i);:}
                    | LPAREN expression:x RPAREN {:RESULT=x;:}
