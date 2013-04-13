@@ -1,6 +1,6 @@
 checkInit_declarator:Type transfer
 
-table:重名(命名空间)
+重名(命名空间)
 
 Cast_expresion:Type transfer
 
@@ -9,5 +9,3 @@ struct 类型判断
 record equals
 
 record_type check constant_expression
-
-很多东西倒着的
