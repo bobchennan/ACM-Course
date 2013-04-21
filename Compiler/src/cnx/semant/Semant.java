@@ -118,7 +118,10 @@ public final class Semant {
 				error();
 			Type ty1=checkDeclarator(l, x._x, false);
 			Type ty2=checkInitializer(x._y);
-			if(!ty1.equals(ty2))
+			if(ty1.equals(INT.getInstance())&&ty2.equals(CHAR.getInstance())){}
+			else if(ty1.equals(INT.getInstance())&&ty2.equals(CHAR.getInstance())){}
+			else if(ty1.equals(CHAR.getInstance())&&ty2.equals(INT.getInstance())){}
+			else if(!ty1.equals(ty2))
 				error();
 		}
 		else checkDeclarator(l, x._x, false);
@@ -242,7 +245,7 @@ public final class Semant {
 	}
 	public Type checkExpression(Expression x){
 		Type ret = VOID.getInstance();
-		for(int i = 0; i < x._l.size(); ++i){
+		for(int i = 0; x != null && i < x._l.size(); ++i){
 			ret = checkAssignment_expression(x._l.get(i));
 		}
 		return ret;
@@ -386,12 +389,17 @@ public final class Semant {
 		return ty1;
 	}
 	public Type checkCast_expression(Cast_expression x){
-		Type ty1 = checkUnary_expression(x._x);
+		if(x._x != null)
+			return checkUnary_expression(x._x);
 		if(x._link != null){
 			Type ty2 = checkCast_expression(x._link);
-			return ty2;
+			if(ty2 instanceof RECORD)error();
+			if(ty2.equals(VOID.getInstance()))error();
+			Type ty1 = x._ty._ty.toType(env);
+			if(ty1 instanceof RECORD)error();
+			return ty1;
 		}
-		return ty1;
+		return VOID.getInstance();
 	}
 	public Type checkUnary_expression(Unary_expression x){
 		if(x instanceof Postfix_expression)
@@ -515,6 +523,7 @@ public final class Semant {
 				break;
 			}
 			Type tmp = ((FunEntry)f).formals.fields.get(i).type;
+			if(tmp.equals(CHAR.getInstance()))tmp=INT.getInstance();
 			if(!tmp.equals(checkAssignment_expression(y._l.get(i))))
 				error();
 		}

@@ -12,6 +12,7 @@ import java.io.*;
 
 %{
 	private boolean commentCount = false;
+	private boolean isString = false;
 	private StringBuffer str = new StringBuffer();
 
 	private void err(String message) {
@@ -48,7 +49,8 @@ Whitespace = {LineTerm}|[ \t\f]
 %%
 
 <YYINITIAL> {
-    \"	 { str.setLength(0); yybegin(YYSTRING);}
+    \"	 { isString=true;str.setLength(0); yybegin(YYSTRING);}
+    \'   { isString=false;str.setLength(0); yybegin(YYSTRING);}
 	"/*" { commentCount = true; yybegin(YYCOMMENT); }
 	"*/" { err("Comment symbol do not match!"); }
 	\#   {yybegin(YYPRE);}
@@ -116,7 +118,6 @@ Whitespace = {LineTerm}|[ \t\f]
     "&=" { /*System.out.println(yytext());*/return tok(ANDASS); }
     "^=" { /*System.out.println(yytext());*/return tok(XORASS); }
     "|=" { /*System.out.println(yytext());*/return tok(ORASS); }
-    \'.\' {/*System.out.println(yytext());*/return tok(CHR,new String(yytext()).charAt(1));}
     {Identifier} 
 	{
 		boolean ty=false;
@@ -144,17 +145,22 @@ Whitespace = {LineTerm}|[ \t\f]
     [^] {}
 }
 <YYSTRING> {
-	\"	{yybegin(YYINITIAL); return tok(STR, str.toString());}
+	\"|\'	{
+		yybegin(YYINITIAL); 
+		if(isString)return tok(STR, str.toString());
+		else if(str.length()>1)err("char presentation error(length error)!");
+		else return tok(CHR,str.toString().charAt(0));
+	}
 	\\[0-9]{3}	{
 		int n = Integer.parseInt(yytext().substring(1, 4));
 		if (n > 255) err("String presentation error (\\ddd exceeded 255)!");
 		else str.append((char) n);
 	}
-	[^\n\t\"\\]+	{str.append(yytext());}
-	\\t				{str.append('\t');}
-	\\n				{str.append('\n');}
-	\\\"			{str.append('\"');}
-	\\\\			{str.append('\\');}
+	[^\n\t\"\'\\]+	{str.append(yytext());}
+	\\t				{str.append("\t");}
+	\\n				{str.append("\n");}
+	\\\"			{str.append("\"");}
+	\\\\			{str.append("\\");}
 	{LineTerm}		{err("String presentation error (unexpected line terminator)!");}
 	\\{Whitespace}+\\	{ /* do nothing */ }
 }

@@ -2,9 +2,9 @@ package cnx.type;
 
 public final class ARRAY extends POINTER {
 
-	public int capacity;
+	public Object capacity;
 
-	public ARRAY(Type type, int cap) {
+	public ARRAY(Type type, Object cap) {
 		super(type);
 		capacity = cap;
 	}

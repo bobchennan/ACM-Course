@@ -24,6 +24,9 @@ public class SemantTest {
 
 		Semant semant = new Semant();
 		semant.checkProgram(tree);
+		
+		Beautifier formater = new Beautifier();
+		formater.start(tree);
 		return 0;
 	}
 	

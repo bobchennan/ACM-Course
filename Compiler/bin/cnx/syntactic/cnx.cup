@@ -43,9 +43,9 @@ terminal      TYPEDEF,VOID,CHAR,INT,STRUCT,UNION,IF,ELSE,WHILE,FOR,CONTINUE,BREA
 terminal      LPAREN,RPAREN,SEMICOLON,COMMA,ASSIGN,LBRACE,RBRACE,LBRACK,RBRACK,BITOR,INDEX,BITAND,LT,GT,PLUS,MINUS,ASTER,DIVIDE,MOD,BITNOT,NOT,DOT;
 terminal      OR,AND,EQ,NE,LE,GE,SHL,SHR,INC,DEC,PTR,ELLIPSIS;
 terminal      MULASS,DIVASS,MODASS,ADDASS,SUBASS,SHLASS,SHRASS,ANDASS,XORASS,ORASS;
-terminal char CHR;
 terminal int NUM;
 terminal String STR,ID,TYPEID;
+terminal char CHR;
 
 non terminal Additive_expression additive_expression;
 non terminal Additive_operator additive_operator;
