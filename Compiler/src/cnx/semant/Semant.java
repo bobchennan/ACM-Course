@@ -6,8 +6,8 @@ import cnx.env.*;
 import cnx.ast.*;
 import java.util.*;
 
-public final class Semant {
-	private Env env = null;
+public class Semant {
+	public Env env = null;
 	private int errors = 0;
 	private Type now;
 	public Semant(){
@@ -121,6 +121,8 @@ public final class Semant {
 			if(ty1.equals(INT.getInstance())&&ty2.equals(CHAR.getInstance())){}
 			else if(ty1.equals(INT.getInstance())&&ty2.equals(CHAR.getInstance())){}
 			else if(ty1.equals(CHAR.getInstance())&&ty2.equals(INT.getInstance())){}
+			else if(ty1 instanceof POINTER && ty2 instanceof POINTER){}
+			else if(ty2 instanceof POINTER && (ty1.equals(CHAR.getInstance()) || ty1.equals(INT.getInstance()))){}
 			else if(!ty1.equals(ty2))
 				error();
 		}
@@ -258,7 +260,8 @@ public final class Semant {
 			if(!checkLeft(x._uexp))error();
 			Type ty2 = checkAssignment_expression(x._link);
 			if(x._aop == Assignment_operator.ASSIGN && ty1 instanceof POINTER && ty2 instanceof POINTER){}
-			else if(ty1 instanceof POINTER && (ty2.equals(CHAR.getInstance()) || ty2.equals(INT.getInstance()))){}
+			else if(x._aop == Assignment_operator.ASSIGN && ty2 instanceof POINTER && (ty1.equals(CHAR.getInstance()) || ty1.equals(INT.getInstance()))){}
+			else if(x._aop == Assignment_operator.ASSIGN && ty1 instanceof POINTER && (ty2.equals(CHAR.getInstance()) || ty2.equals(INT.getInstance()))){}
 			else if(ty1.equals(INT.getInstance())&&ty2.equals(CHAR.getInstance())){}
 			else if(ty2.equals(INT.getInstance())&&ty1.equals(CHAR.getInstance())){}
 			else if(!ty1.equals(ty2))error();
@@ -345,9 +348,9 @@ public final class Semant {
 		return ty1;
 	}
 	public Type checkAdditive_expression(Additive_expression x){
-		Type ty1 = checkMultiplicative_expression(x._x);
+		Type ty2 = checkMultiplicative_expression(x._x);
 		if(x._link != null){
-			Type ty2 = checkAdditive_expression(x._link);
+			Type ty1 = checkAdditive_expression(x._link);
 			if(ty1.equals(VOID.getInstance()))error();
 			if(ty1 instanceof RECORD)error();
 			if(ty2.equals(VOID.getInstance()))error();
@@ -356,9 +359,7 @@ public final class Semant {
 			if(x._aop==Additive_operator.PLUS){
 				if(ty1 instanceof POINTER || ty2 instanceof POINTER)
 					if(ty1 instanceof POINTER && ty2 instanceof POINTER)
-						if(ty1.equals(ty2))
-							return ty1;
-						else error();
+						error();
 					else if(ty1 instanceof POINTER)
 						return ty1;
 					else return ty2;
@@ -367,16 +368,14 @@ public final class Semant {
 			if(x._aop==Additive_operator.MINUS){
 				if(!(ty1 instanceof POINTER) && ty2 instanceof POINTER)
 					error();
-				if(ty1 instanceof POINTER && ty2 instanceof POINTER && ty1.equals(ty2))
+				if(ty1 instanceof POINTER && ty2 instanceof POINTER && !ty1.equals(ty2))
 					error();
 				if(ty1 instanceof POINTER)
 					return ty1;
-				if(ty2 instanceof POINTER)
-					return ty2;
 				return INT.getInstance();
 			}
 		}
-		return ty1;
+		return ty2;
 	}
 	public Type checkMultiplicative_expression(Multiplicative_expression x){
 		Type ty1 = checkCast_expression(x._x);
@@ -438,22 +437,25 @@ public final class Semant {
 		}
 		return VOID.getInstance();
 	}
+	Dictionary<Postfix_expression, Type> dict = new Hashtable<Postfix_expression, Type>();
 	public Type checkPostfix_expression(Postfix_expression x){
+		Type ret = dict.get(x);
+		if(ret != null)return ret;
 		if(x instanceof Array_expression)
-			return checkArray_expression((Array_expression) x);
+			ret = checkArray_expression((Array_expression) x);
 		if(x instanceof Dec_expression)
-			return checkDec_expression((Dec_expression) x);
+			ret = checkDec_expression((Dec_expression) x);
 		if(x instanceof Dot_expression)
-			return checkDot_expression((Dot_expression) x);
+			ret = checkDot_expression((Dot_expression) x);
 		if(x instanceof Function_expression)
-			return checkFunction_expression((Function_expression) x);
+			ret = checkFunction_expression((Function_expression) x);
 		if(x instanceof Inc_expression)
-			return checkInc_expression((Inc_expression) x);
+			ret = checkInc_expression((Inc_expression) x);
 		if(x instanceof Pointer_expression)
-			return checkPointer_expression((Pointer_expression) x);
+			ret = checkPointer_expression((Pointer_expression) x);
 		if(x instanceof Primary_expression)
-			return checkPrimary_expression((Primary_expression) x);
-		return VOID.getInstance();
+			ret = checkPrimary_expression((Primary_expression) x);
+		return ret;
 	}
 	public Type checkArray_expression(Array_expression x){
 		Type ty = checkPostfix_expression(x._x);
@@ -498,7 +500,6 @@ public final class Semant {
 		Type ty = checkPostfix_expression(x._x);
 		if(!(ty instanceof POINTER))
 			error();
-		Type ty2 = ((POINTER)ty).elementType;
 		if(!(ty instanceof POINTER))
 			error();
 		if(!((((POINTER)ty).elementType) instanceof RECORD))
@@ -548,7 +549,7 @@ public final class Semant {
 		if(x instanceof Constant) return INT.getInstance();
 		if(x instanceof Expression) return checkExpression((Expression) x);
 		if(x instanceof Id){
-			Entry y = (Entry) env.vEnv.get(((Id)x)._sym);
+			Entry y = (VarEntry) env.vEnv.get(((Id)x)._sym);
 			if(!(y instanceof VarEntry))
 				error();
 			else return ((VarEntry)y).ty;

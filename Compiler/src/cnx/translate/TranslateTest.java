@@ -6,7 +6,7 @@ import cnx.ast.*;
 import cnx.error.Error;
 import cnx.semant.*;
 
-public class translateTest {
+public class TranslateTest {
 	private static int semant(String filename) throws Exception{
 		InputStream inp = new BufferedInputStream(new FileInputStream(filename));
 		Parser parser = new Parser(inp);
@@ -28,6 +28,8 @@ public class translateTest {
 		
 		Translate tran = new Translate();
 		tran.tranProgram(tree);
+		for(int i = 0; i < tran.ans.size(); ++i)
+			System.out.println(tran.ans.get(i));
 		return 0;
 	}
 	
@@ -35,7 +37,6 @@ public class translateTest {
 		if (argv.length > 0) {
 			try {
 				semant(argv[0]);
-				System.out.println('0');
 				System.exit(0);
 			}
 			catch (Exception e) {

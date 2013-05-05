@@ -11,3 +11,11 @@ record equals
 record_type check constant_expression
 
 类型前置声明（指针）
+
+优化：值相同、连续赋值
+
+
+翻译：
+record内嵌数组
+
+短路

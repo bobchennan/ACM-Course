@@ -2,7 +2,7 @@ package cnx.temp;
 
 import cnx.symbol.Symbol;
 
-public class Label{
+public class Label implements Addr{
 	public static int count = 0;
 	private String name = "";
 

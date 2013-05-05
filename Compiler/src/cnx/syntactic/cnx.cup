@@ -10,7 +10,7 @@ action code {:
 :};
 
 parser code {:
-  public void report_error(String message, Object info) {/*
+  public void report_error(String message, Object info) {
     StringBuffer m = new StringBuffer("\tParsing error");
     if (info instanceof java_cup.runtime.Symbol) {
       java_cup.runtime.Symbol s = (java_cup.runtime.Symbol) info;
@@ -23,7 +23,7 @@ parser code {:
       }
     }
     m.append(" : " + message);
-    System.err.println(m);*/
+    System.err.println(m);
   }
 	public void report_fatal_error(String message, Object info) {
 		fatalError = true;

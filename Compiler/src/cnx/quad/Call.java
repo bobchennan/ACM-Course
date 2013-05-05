@@ -3,6 +3,7 @@ package cnx.quad;
 import cnx.temp.*;
 
 public class Call extends Quad {
+	private Addr x = null;
 	private Label p = null;
 	private int n;
 	
@@ -10,7 +11,13 @@ public class Call extends Quad {
 		this.p = p;
 		this.n = n;
 	}
+	public Call(Addr x, Label p, int n){
+		this.x = x;
+		this.p = p;
+		this.n = n;
+	}
 	public String toString(){
-		return "call " + p + ", " + n;
+		if(x != null)return x+" = call " + p + ", " + n;
+		else return "call " + p + ", " + n;
 	}
 }
