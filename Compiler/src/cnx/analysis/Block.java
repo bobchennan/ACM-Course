@@ -55,7 +55,12 @@ public class Block {
 	}
 	
 	public String toString() {
-		return "B" + number;
+		String ret=new String("B"+number+"\n");
+		for(Quad i:quads){
+			ret+=i;
+			ret+="\n";
+		}
+		return ret;
 	}
 	
 	public Set<Temp> def() {
@@ -79,4 +84,7 @@ public class Block {
 		}
 		return set;
 	}
+	
+	public Set<Temp> IN = new LinkedHashSet<Temp>();
+	public Set<Temp> OUT = new LinkedHashSet<Temp>();
 }

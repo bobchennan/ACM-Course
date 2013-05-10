@@ -1,5 +1,8 @@
 package cnx.quad;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import cnx.env.Constants;
 import cnx.temp.*;
 import cnx.ast.*;
@@ -39,5 +42,26 @@ public class Unary extends Quad {
 			return dest.toString() + " = " + " " + Constants.sopStr[opStr] + " " + x.toString(); 
 		else
 			return dest.toString() + " = " + " " + getStr(ty) + " " +x.toString();
+	}
+	
+	@Override
+	public Set<Temp> def() {
+		Set<Temp> set = new LinkedHashSet<Temp>();
+		set.add((Temp)dest);
+		return set;
+	}
+
+	@Override
+	public Set<Temp> use() {
+		Set<Temp> set = new LinkedHashSet<Temp>();
+		if(x instanceof Temp)set.add((Temp)x);
+		return set;
+	}
+	
+	@Override
+	public void replaceUseOf(Temp old, Temp t) {
+		if (x.equals(old)) {
+			x = t;
+		}
 	}
 }

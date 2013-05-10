@@ -34,4 +34,14 @@ public class Binop extends Quad {
 		if(y instanceof Temp)set.add((Temp)y);
 		return set;
 	}
+	
+	@Override
+	public void replaceUseOf(Temp old, Temp t) {
+		if (x.equals(old)) {
+			x = t;
+		}
+		if (y.equals(old)) {
+			y = t;
+		}
+	}
 }

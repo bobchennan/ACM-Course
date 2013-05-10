@@ -1,6 +1,8 @@
 package cnx.quad;
 
 import cnx.temp.*;
+import java.util.List;
+import java.util.Set;
 
 public class Malloc extends Quad {
 	Addr ret = null;
@@ -13,5 +15,19 @@ public class Malloc extends Quad {
 	
 	public String toString(){
 		return ret + " = malloc " + size;
+	}
+	
+	@Override
+	public Set<Temp> def() {
+		Set<Temp> set = super.def();
+		set.add((Temp)ret);
+		return set;
+	}
+	
+	@Override
+	public Set<Temp> use() {
+		Set<Temp> set = super.def();
+		set.add((Temp)size);
+		return set;
 	}
 }

@@ -13,15 +13,20 @@ import cnx.semant.*;
 
 public class Translate extends Semant{
 	public List<Quad> ans;
+	public List<CompilationUnit> fun;
 	public Translate(){
 		this(new Env());
 	}
 	public Translate(Env x){
 		env = x;
 		ans=new ArrayList<Quad>();
+		fun=new ArrayList<CompilationUnit>();
 	}
 	private void emit(Quad x){
 		ans.add(x);
+	}
+	private void emit(CompilationUnit x){
+		fun.add(x);
 	}
 	private Stack<Label> breakLabels = new Stack<Label>();
 	private Stack<Label> continueLabels = new Stack<Label>();
@@ -61,7 +66,7 @@ public class Translate extends Semant{
 	Addr getSize(Unary_expression x){
 		return getSize(checkUnary_expression(x));
 	}
-	void tranProgram(Program x){
+	public void tranProgram(Program x){
 		if(x._link != null)tranProgram(x._link);
 		if(x._v instanceof Declaration)
 			tranDeclaration((Declaration)x._v);
@@ -87,18 +92,24 @@ public class Translate extends Semant{
 			t = t._link;
 		}
 		env.vEnv.put(t._sym,new FunEntry(formals, ty, (x._arg != null)?(x._arg._ellipsis):(false)));
-		Label f = Label.forFunction(t._sym);
-		emit(new LABEL(f));
-		emit(new Enter(f));
 		if(x._st != null){
+			Label f = Label.forFunction(t._sym);
+			LinkedList<Temp> params = new LinkedList<Temp>();
+			for(int i = 0; i < formals.fields.size(); ++i){
+				Temp tmp = new Temp();
+				env.vEnv.put(formals.fields.get(i).name,new VarEntry(formals.fields.get(i).type, tmp));
+				params.add(tmp);
+			}
+			Translate son = new Translate(env);
+			son.emit(new LABEL(f));
+			son.emit(new Enter(f, params));
 			env.beginScope();
-			for(int i = 0; i < formals.fields.size(); ++i)
-				env.vEnv.put(formals.fields.get(i).name,new VarEntry(formals.fields.get(i).type, new Temp()));
 			if(x._st != null)
-				tranCompound_statement(x._st);
+				son.tranCompound_statement(x._st);
 			env.endScope();
+			son.emit(new Leave(f));
+			emit(new CompilationUnit(son.ans, f));
 		}
-		emit(new Leave(f));
 	}
 	public void tranDeclarators(Type l, Declarators x){
 		for(int i = 0; x != null && i < x._l.size(); ++i)
@@ -193,7 +204,13 @@ public class Translate extends Semant{
 			else{
 				Addr tmp = getSize(ty);
 				Addr ret = new Temp();
-				emit(new Malloc(ret, tmp));
+				if(tmp instanceof Temp)
+					emit(new Malloc(ret, tmp));
+				else{
+					Addr tmp2 = new Temp();
+					emit(new Move(tmp2, tmp));
+					emit(new Malloc(ret, tmp2));
+				}
 				return ret;
 			}
 		}
@@ -372,7 +389,13 @@ public class Translate extends Semant{
 			emit(new Goto(breakLabel(continueLabels)));
 		if(x instanceof Return_statement){
 			Addr tmp = tranExpression(((Return_statement)x)._exp);
-			emit(new Return(tmp));
+			if(tmp instanceof Temp)
+				emit(new Return(tmp));
+			else{
+				Addr tmp2 = new Temp();
+				emit(new Move(tmp2, tmp));
+				emit(new Return(tmp2));
+			}
 		}
 	}
 	public Addr tranExpression(Expression x){
@@ -647,15 +670,23 @@ public class Translate extends Semant{
 		Entry f = (Entry) env.vEnv.get(((Id)x._x)._sym);
 		Arguments y = x._y;
 		int cnt = (y != null && y._l != null)?y._l.size():0;
-		for(int i = 0; i < cnt; ++i)
-			emit(new Param(tranAssignment_expression(y._l.get(i))));
+		LinkedList<Temp> params = new LinkedList<Temp>();
+		for(int i = 0; i < cnt; ++i){
+			Addr tmp = tranAssignment_expression(y._l.get(i));
+			if(!(tmp instanceof Temp)){
+				Temp tm = new Temp();
+				emit(new Move(tm, tmp));
+				params.add(tm);
+			}
+			else params.add((Temp)tmp);
+		}
 		if(((FunEntry)f).result.equals(VOID.getInstance())){
-			emit(new Call(Label.forFunction(name),cnt));
+			emit(new Call(Label.forFunction(name),params));
 			return null;
 		}
 		else{
 			Addr ret = new Temp();
-			emit(new Call(ret,Label.forFunction(name), cnt));
+			emit(new Call(ret,Label.forFunction(name), params));
 			return ret;
 		}
 	}

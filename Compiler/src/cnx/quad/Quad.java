@@ -8,8 +8,14 @@ import java.util.Set;
 import cnx.temp.*;
 
 public abstract class Quad {
-private boolean leader = false;
-	
+	private boolean leader = false;
+
+	public void clearAll() {
+		leader = false;
+		successors.clear();
+	}
+
+
 	public void setLeader() {
 		leader = true;
 	}
@@ -62,4 +68,7 @@ private boolean leader = false;
 	public List<Quad> getSuccessors() {
 		return successors;
 	}
+	
+	public Set<Temp> IN = new LinkedHashSet<Temp>();
+	public Set<Temp> OUT = new LinkedHashSet<Temp>();
 }
