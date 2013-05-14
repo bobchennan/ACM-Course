@@ -6,23 +6,26 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
+import cnx.translate.Level;
 import cnx.analysis.*;
 import cnx.temp.*;
 import cnx.quad.*;
+import cnx.env.Constants;
 
 public class CompilationUnit {
 	
 	private List<Quad> quads = null;
-	private Label label = null;
+	private Level level = null;
 
-	public CompilationUnit(List<Quad> quads, Label label) {
+	public CompilationUnit(List<Quad> quads) {
 		this.quads = quads;
-		this.label = label;
+		level = Constants.now;
 	}
 
 	public List<Quad> getQuads() {
 		return quads;
 	}
+	
 	
 	public void setQuads(List<Quad> quads) {
 		if (!(quads instanceof LinkedList)) {
@@ -32,8 +35,8 @@ public class CompilationUnit {
 		this.quads = quads;
 	}
 	
-	public Label getLabel() {
-		return label;
+	public Level getLevel() {
+		return level;
 	}
 	
 	private LinkedList<Block> blocks = null;

@@ -98,6 +98,7 @@ public class Assem {
 		TreeSet<Integer> freeRegs = new TreeSet<Integer>();
 		freeRegs.add(26);	// $k0
 		freeRegs.add(27);	// $k1
+		freeRegs.add(30);
 		
 		for (Temp t : use()) {
 			if (t.getLiveInterval().register == Constants.spillReg) {
@@ -105,8 +106,10 @@ public class Assem {
 				t.getLiveInterval().register = r;
 				// lw $r, Constants.pointerSize*t.home.depth($gp)
 				// lw $r, Constants.pointerSize*t.index($r)
-				before.append("\t\t\tlw $" + Constants.regNames[r] + ", " + Constants.pointerSize * t.home.depth + "($gp)\t# load display for spilling\n");
-				before.append("\t\t\tlw $" + Constants.regNames[r] + ", " + Constants.pointerSize * t.index + "($" + Constants.regNames[r] + ")\t# load for spilling\n");
+				if(t.allArea)
+					before.append("\t\t\tlw $" + Constants.regNames[r] + ", " + Constants.pointerSize * t.index + "($gp)\t# load for spilling\n");
+				else
+					before.append("\t\t\tlw $" + Constants.regNames[r] + ", " + Constants.pointerSize * t.index + "($sp)\t# load for spilling");
 			}
 		}
 		
@@ -124,11 +127,10 @@ public class Assem {
 			if (t.getLiveInterval().spilled && t.getLiveInterval().register != Constants.spillReg) {
 				int r = t.getLiveInterval().register;
 				t.getLiveInterval().register = Constants.spillReg;
-				int d = 26+27 - r;	// another $k?
-				// lw $d, Constants.pointerSize*t.home.depth($gp)
-				// sw $r, Constants.pointerSize*t.index($d)
-				after.append("\n\t\t\tlw $" + Constants.regNames[d] + ", " + Constants.pointerSize * t.home.depth + "($gp)\t# load display for spilling");
-				after.append("\n\t\t\tsw $" + Constants.regNames[r] + ", " + Constants.pointerSize * t.index + "($" + Constants.regNames[d] + ")\t# write back for spilling");
+				if(t.allArea)
+					after.append("\n\t\t\tsw $"+Constants.regNames[r] + ", " + Constants.pointerSize * t.index + "($gp)\t# write back for spilling\n");
+				else
+					after.append("\n\t\t\tsw $" + Constants.regNames[r] + ", " + Constants.pointerSize * t.index + "($sp)\t# write back for spilling");
 			}
 		}
 		

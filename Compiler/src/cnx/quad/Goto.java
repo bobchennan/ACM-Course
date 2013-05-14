@@ -1,9 +1,11 @@
 package cnx.quad;
 
 import cnx.temp.*;
+import cnx.assem.*;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
 
 public class Goto extends Quad {
 	private Label l = null;
@@ -35,5 +37,10 @@ public class Goto extends Quad {
 	@Override
 	public Quad jumpTargetIn(List<Quad> quads) {
 		return findTargetIn(quads, l);
+	}
+	
+	@Override
+	public AssemList gen() {
+		return L(new Assem("j %", l));
 	}
 }

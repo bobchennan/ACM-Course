@@ -1,6 +1,8 @@
 package cnx.quad;
 
 import cnx.temp.*;
+import cnx.assem.*;
+import cnx.env.Constants;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -42,5 +44,10 @@ public final class Load extends Quad {
 		if (y.equals(old)) {
 			y = t;
 		}
+	}
+	
+	@Override
+	public AssemList gen() {
+		return L(new Assem("lw @, %(%) # load" , x, z.value * Constants.pointerSize, y));
 	}
 }

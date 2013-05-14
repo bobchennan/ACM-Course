@@ -12,6 +12,7 @@ import cnx.temp.*;
 import cnx.semant.*;
 
 public class Translate extends Semant{
+	public int maxArg = 0;
 	public List<Quad> ans;
 	public List<CompilationUnit> fun;
 	public Translate(){
@@ -25,6 +26,21 @@ public class Translate extends Semant{
 	private void emit(Quad x){
 		ans.add(x);
 	}
+	
+	private LinkedList<DataFrag> dataFrags = new LinkedList<DataFrag>();
+	
+	private void emit(DataFrag dataFrag) {
+		dataFrags.add(dataFrag);
+	}
+	
+	public LinkedList<DataFrag> getDataFrags() {
+		return dataFrags;
+	}
+
+	private void emit(LinkedList<DataFrag> dataFrags) {
+		this.dataFrags.addAll(dataFrags);
+	}
+	
 	private void emit(CompilationUnit x){
 		fun.add(x);
 	}
@@ -40,17 +56,26 @@ public class Translate extends Semant{
 	private Label breakLabel(Stack<Label> t) {
 		return t.peek();
 	}
-	Addr getSize(Type x){
+	Temp getSize(Type x){
 		if(x instanceof ARRAY)
-			return (Addr)((ARRAY)x).capacity;
-		if(x instanceof POINTER)
-			return new Const(Constants.pointerSize);
-		if(x instanceof CHAR)
-			return new Const(Constants.charSize);
-		if(x instanceof INT)
-			return new Const(Constants.intSize);
+			return (Temp)((ARRAY)x).capacity;
+		if(x instanceof POINTER){
+			Temp ret = Constants.now.newLocal();
+			emit(new Move(ret, new Const(Constants.pointerSize)));
+			return ret;
+		}
+		if(x instanceof CHAR){
+			Temp ret = Constants.now.newLocal();
+			emit(new Move(ret, new Const(Constants.charSize)));
+			return ret;
+		}
+		if(x instanceof INT){
+			Temp ret = Constants.now.newLocal();
+			emit(new Move(ret, new Const(Constants.intSize)));
+			return ret;
+		}
 		if(x instanceof RECORD){
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			for(int i = 0; i < ((RECORD)x).fields.size(); ++i){
 				Addr tmp = getSize(((RECORD)x).fields.get(i).type);
 				if(i != 0)emit(new Binop(ret, ret, 0, tmp));
@@ -60,10 +85,10 @@ public class Translate extends Semant{
 		}
 		return null;
 	}
-	Addr getSize(Type_name x){
+	Temp getSize(Type_name x){
 		return getSize(x._ty.toType(env));
 	}
-	Addr getSize(Unary_expression x){
+	Temp getSize(Unary_expression x){
 		return getSize(checkUnary_expression(x));
 	}
 	public void tranProgram(Program x){
@@ -94,28 +119,36 @@ public class Translate extends Semant{
 		env.vEnv.put(t._sym,new FunEntry(formals, ty, (x._arg != null)?(x._arg._ellipsis):(false)));
 		if(x._st != null){
 			Label f = Label.forFunction(t._sym);
+			Translate son = new Translate(env);
+			son.emit(new LABEL(f));
+			env.beginScope();
+			Level bak = Constants.now;
+			Label ff = Label.forFunctionExit(t._sym);
+			Constants.exit = ff;
+			Constants.now = new Level(bak, t._sym.toString(), f);
 			LinkedList<Temp> params = new LinkedList<Temp>();
 			for(int i = 0; i < formals.fields.size(); ++i){
-				Temp tmp = new Temp();
+				Temp tmp = Constants.now.newLocal();
 				env.vEnv.put(formals.fields.get(i).name,new VarEntry(formals.fields.get(i).type, tmp));
 				params.add(tmp);
 			}
-			Translate son = new Translate(env);
-			son.emit(new LABEL(f));
+			if(maxArg < params.size())
+				maxArg = params.size();
 			son.emit(new Enter(f, params));
-			env.beginScope();
-			if(x._st != null)
-				son.tranCompound_statement(x._st);
+			son.tranCompound_statement(x._st);
 			env.endScope();
+			son.emit(new LABEL(ff));
 			son.emit(new Leave(f));
-			emit(new CompilationUnit(son.ans, f));
+			emit(son.getDataFrags());
+			emit(new CompilationUnit(son.ans));
+			Constants.now = bak;
 		}
 	}
 	public void tranDeclarators(Type l, Declarators x){
 		for(int i = 0; x != null && i < x._l.size(); ++i)
-			tranDeclarator(l, x._l.get(i), true);
+			tranDeclarator(l, x._l.get(i), true, false);
 	}
-	public Addr tranDeclarator(Type l, Declarator x, boolean isTypedef){
+	public Temp tranDeclarator(Type l, Declarator x, boolean isTypedef, boolean needEmpty){
 		Plain_declarator t = x._x;
 		while(t._link != null){
 			l = new POINTER(l);
@@ -125,29 +158,27 @@ public class Translate extends Semant{
 			env.vEnv.put(t._sym, new FunEntry(tranParameters(x._arg),l,x._arg._ellipsis));
 		else {
 			Constant_expressions s = x._cexp;
-			Addr ret = null;
-			if(s != null)
+			if(s != null){
+				Addr ret = new Const(Constants.pointerSize);
 				for(int i = s._l.size() - 1; i >= 0 ; --i){
 					Addr tmp = tranConstant_expression(s._l.get(i));
-					if(ret == null)ret = tmp;
-					else{
-						Addr tt = new Temp();
-						emit(new Binop(tt, ret, 2, tmp));
-						ret = tt;
-					}
+					Addr tt = Constants.now.newLocal();
+					emit(new Binop(tt, tmp, 2, ret));
+					ret = tt;
 					l = new ARRAY(l, ret, tmp);
 				}
+			}
 			if(isTypedef)
 				env.tEnv.put(t._sym, l);
 			else{
-				Addr re = null;
+				Temp re = null;
 				if(l instanceof ARRAY)
 					re = tranArray(l);
 				else if(l instanceof RECORD)
 					re = tranRecord((RECORD)l);
 				else{
-					re = new Temp();
-					emit(new Move(re, new Const(0)));
+					re = Constants.now.newLocal();
+					//if(needEmpty && Constants.now.label.toString() == Constants.top_level)emit(new Move(re, new Const(0)));
 				}
 				env.vEnv.put(t._sym, new VarEntry(l, re));
 				return re;
@@ -155,16 +186,16 @@ public class Translate extends Semant{
 		}
 		return null;
 	}
-	Addr tranArray(Type ty){
+	Temp tranArray(Type ty){
 		if(((ARRAY)ty).elementType instanceof ARRAY){
 			Label begin = new Label();
 			Label next = new Label();
-			Temp i = new Temp();
-			Temp cmp = new Temp();
-			Temp limit = new Temp();
+			Temp i = Constants.now.newLocal();
+			Temp cmp = Constants.now.newLocal();
+			Temp limit = Constants.now.newLocal();
 			
 			emit(new Binop(limit, (Addr)((ARRAY)ty).other, 2, new Const(Constants.pointerSize)));
-			Addr tmp = new Temp();
+			Temp tmp = Constants.now.newLocal();
 			emit(new Malloc(tmp, limit));
 			emit(new Move(i, tmp));
 			emit(new Binop(limit, limit, 0, tmp));
@@ -180,13 +211,13 @@ public class Translate extends Semant{
 		}
 		else{
 			if(((ARRAY)ty).elementType instanceof RECORD){
-				Addr ret = new Temp();
-				Addr tmp = new Temp();
+				Temp ret = Constants.now.newLocal();
+				Addr tmp = Constants.now.newLocal();
 				Label begin = new Label();
 				Label next = new Label();
-				Temp i = new Temp();
-				Temp cmp = new Temp();
-				Temp limit = new Temp();
+				Temp i = Constants.now.newLocal();
+				Temp cmp = Constants.now.newLocal();
+				Temp limit = Constants.now.newLocal();
 				emit(new Binop(tmp, new Const(Constants.pointerSize), 2, (Addr)((ARRAY)ty).other));
 				emit(new Malloc(ret, tmp));
 				emit(new Binop(limit, ret, 0, tmp));
@@ -203,11 +234,11 @@ public class Translate extends Semant{
 			}
 			else{
 				Addr tmp = getSize(ty);
-				Addr ret = new Temp();
+				Temp ret = Constants.now.newLocal();
 				if(tmp instanceof Temp)
 					emit(new Malloc(ret, tmp));
 				else{
-					Addr tmp2 = new Temp();
+					Addr tmp2 = Constants.now.newLocal();
 					emit(new Move(tmp2, tmp));
 					emit(new Malloc(ret, tmp2));
 				}
@@ -215,9 +246,9 @@ public class Translate extends Semant{
 			}
 		}
 	}
-	Addr tranRecord(RECORD ty){
-		Addr ret = new Temp();
-		Addr tmp = new Temp();
+	Temp tranRecord(RECORD ty){
+		Temp ret = Constants.now.newLocal();
+		Addr tmp = Constants.now.newLocal();
 		emit(new Move(tmp, new Const(0)));
 		for(int i = 0; i < ty.fields.size(); ++i)
 			if(ty.fields.get(i).type instanceof ARRAY || ty.fields.get(i).type instanceof RECORD)
@@ -228,7 +259,7 @@ public class Translate extends Semant{
 		emit(new Move(tmp, new Const(0)));
 		for(int i = 0; i < ty.fields.size(); ++i)
 			if(ty.fields.get(i).type instanceof ARRAY || ty.fields.get(i).type instanceof RECORD){
-				Addr tmp2 = new Temp();
+				Addr tmp2 = Constants.now.newLocal();
 				emit(new Binop(tmp2, ret, 0, tmp));
 				if(ty.fields.get(i).type instanceof ARRAY)
 					emit(new Store(tmp2, new Const(0), tranArray(ty.fields.get(i).type)));
@@ -245,9 +276,9 @@ public class Translate extends Semant{
 			tranInit_declarator(l, x._l.get(i));
 	}
 	public void tranInit_declarator(Type l, Init_declarator x){
-		if(x._y == null)tranDeclarator(l, x._x, false);
+		if(x._y == null)tranDeclarator(l, x._x, false, true);
 		else{
-			Addr t = tranDeclarator(l, x._x, false);
+			Addr t = tranDeclarator(l, x._x, false, false);
 			Move(t, x._y);
 		}
 	}
@@ -262,7 +293,7 @@ public class Translate extends Semant{
 		}
 		else for(int i = 0; y._y != null && y._y._l != null && i < y._y._l.size(); ++i){
 			if(y._y._l.get(i)._x == null){
-				Addr t2 = new Temp();
+				Addr t2 = Constants.now.newLocal();
 				emit(new Load(t2, t1, new Const(i)));
 				Move(t2, y._y._l.get(i));
 			}
@@ -289,11 +320,19 @@ public class Translate extends Semant{
 			ty = new POINTER(ty);
 			t = t._link;
 		}
-		Constant_expressions tt = y._cexp;
-		for(int i = 0; tt != null && i < tt._l.size(); ++i){
-			Addr _ty = tranConstant_expression(tt._l.get(i));
-			ty = new ARRAY(ty, _ty);
-		}
+		Constant_expressions s = y._cexp;
+		Addr ret = null;
+		if(s != null)
+			for(int i = s._l.size() - 1; i >= 0 ; --i){
+				Addr tmp = tranConstant_expression(s._l.get(i));
+				if(ret == null)ret = tmp;
+				else{
+					Addr tt = Constants.now.newLocal();
+					emit(new Binop(tt, ret, 2, tmp));
+					ret = tt;
+				}
+				ty = new ARRAY(ty, ret, tmp);
+			}
 		return new RECORD.RecordField(ty, t._sym, 0);
 	}
 	public void tranCompound_statement(Compound_statement x){
@@ -349,8 +388,8 @@ public class Translate extends Semant{
 			
 			emit(new LABEL(begin));
 			Addr tmp = tranExpression(((While_statement) x)._exp);
-			Addr tmp2 = new Temp();
-			emit(new Binop(tmp2, tmp, 8, new Const(0)));
+			Addr tmp2 = Constants.now.newLocal();
+			emit(new Binop(tmp2, tmp, 8, new Const(1)));
 			emit(new IfFalse(tmp2, next));
 			pushLabel(breakLabels, next);
 			tranStatement(((While_statement) x)._st);
@@ -366,8 +405,8 @@ public class Translate extends Semant{
 			tranExpression(((For_statement) x)._exp1);
 			emit(new LABEL(check));
 			Addr tmp = tranExpression(((For_statement)x)._exp2);
-			Addr tmp2 = new Temp();
-			emit(new Binop(tmp2, tmp, 8, new Const(0)));
+			Addr tmp2 = Constants.now.newLocal();
+			emit(new Binop(tmp2, tmp, 8, new Const(1)));
 			emit(new IfFalse(tmp2, next));
 			emit(new LABEL(begin));
 			pushLabel(breakLabels, next);
@@ -375,9 +414,9 @@ public class Translate extends Semant{
 			tranStatement(((For_statement)x)._st);
 			popLabel(breakLabels);
 			popLabel(continueLabels);
+			tranExpression(((For_statement)x)._exp3);
 			tmp = tranExpression(((For_statement)x)._exp2);
 			emit(new IfFalse(tmp, next));
-			tranExpression(((For_statement)x)._exp3);
 			emit(new Goto(begin));
 			emit(new LABEL(next));
 		}
@@ -392,15 +431,15 @@ public class Translate extends Semant{
 			if(tmp instanceof Temp)
 				emit(new Return(tmp));
 			else{
-				Addr tmp2 = new Temp();
+				Addr tmp2 = Constants.now.newLocal();
 				emit(new Move(tmp2, tmp));
 				emit(new Return(tmp2));
 			}
 		}
 	}
-	public Addr tranExpression(Expression x){
+	public Temp tranExpression(Expression x){
 		if(x == null || x._l == null)return null;
-		Addr ret = tranAssignment_expression(x._l.get(0));
+		Temp ret = tranAssignment_expression(x._l.get(0));
 		for(int i = 1; x._l != null && i < x._l.size(); ++i){
 			ret = tranAssignment_expression(x._l.get(i));
 		}
@@ -409,7 +448,7 @@ public class Translate extends Semant{
 	private Unary_expression Left;
 	private Addr Right;
 	private int Assign_op;
-	public Addr tranAssignment_expression(Assignment_expression x){
+	public Temp tranAssignment_expression(Assignment_expression x){
 		if(x._lexp != null)
 			return tranLogical_or_expression(x._lexp);
 		else{
@@ -428,22 +467,22 @@ public class Translate extends Semant{
 				case ORASS: Assign_op = 5;break;
 			}
 			Left = x._uexp;
-			Addr t1 = tranUnary_expression(x._uexp);
+			Temp t1 = tranUnary_expression(x._uexp);
 			Left = null;
 			return t1;
 		}
 	}
-	public Addr tranConstant_expression(Constant_expression x){
+	public Temp tranConstant_expression(Constant_expression x){
 		return tranLogical_or_expression((Logical_or_expression) x);
 	}
-	public Addr tranLogical_or_expression(Logical_or_expression x){
+	public Temp tranLogical_or_expression(Logical_or_expression x){
 		if(x._link == null)
 			return tranLogical_and_expression(x._x);
 		else{
 			Label next = new Label();
 			Label otherwise = new Label();
 			
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			Addr t1 = tranLogical_or_expression(x._link);
 			emit(new IfFalse(t1, next));
 			emit(new Move(ret, new Const(1)));
@@ -455,11 +494,11 @@ public class Translate extends Semant{
 			return ret;
 		}
 	}
-	public Addr tranLogical_and_expression(Logical_and_expression x){
+	public Temp tranLogical_and_expression(Logical_and_expression x){
 		if(x._link == null)
 			return tranInclusive_or_expression(x._x);
 		else{
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			emit(new Move(ret, new Const(0)));
 			Label next = new Label();
 			Addr t1 = tranLogical_and_expression(x._link);
@@ -470,46 +509,46 @@ public class Translate extends Semant{
 			return ret;
 		}
 	}
-	public Addr tranInclusive_or_expression(Inclusive_or_expression x){
+	public Temp tranInclusive_or_expression(Inclusive_or_expression x){
 		if(x._link == null)
 			return tranExclusive_or_expression(x._x);
 		else{
 			Addr t1 = tranInclusive_or_expression(x._link);
 			Addr t2 = tranExclusive_or_expression(x._x);
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			emit(new Binop(ret, t1, 5, t2));
 			return ret;
 		}
 	}
-	public Addr tranExclusive_or_expression(Exclusive_or_expression x){
+	public Temp tranExclusive_or_expression(Exclusive_or_expression x){
 		if(x._link == null)
 			return tranAnd_expression(x._x);
 		else{
 			Addr t1 = tranExclusive_or_expression(x._link);
 			Addr t2 = tranAnd_expression(x._x);
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			emit(new Binop(ret, t1, 6, t2));
 			return ret;
 		}
 	}
-	public Addr tranAnd_expression(And_expression x){
+	public Temp tranAnd_expression(And_expression x){
 		if(x._link == null)
 			return tranEquality_expression(x._x);
 		else{
 			Addr t1 = tranAnd_expression(x._link);
 			Addr t2 = tranEquality_expression(x._x);
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			emit(new Binop(ret, t1, 7, t2));
 			return ret;
 		}
 	}
-	public Addr tranEquality_expression(Equality_expression x){
+	public Temp tranEquality_expression(Equality_expression x){
 		if(x._link == null)
 			return tranRelational_expression(x._x);
 		else{
 			Addr t1 = tranEquality_expression(x._link);
 			Addr t2 = tranRelational_expression(x._x);
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			switch(x._eop){
 				case EQ: emit(new Binop(ret, t1, 8, t2));break;
 				case NE: emit(new Binop(ret, t1, 9, t2));break;
@@ -517,13 +556,13 @@ public class Translate extends Semant{
 			return ret;
 		}
 	}
-	public Addr tranRelational_expression(Relational_expression x){
+	public Temp tranRelational_expression(Relational_expression x){
 		if(x._link == null)
 			return tranShift_expression(x._x);
 		else{
 			Addr t1 = tranRelational_expression(x._link);
 			Addr t2 = tranShift_expression(x._x);
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			switch(x._rop){
 				case LT: emit(new Binop(ret, t1, 10, t2));break;
 				case LE: emit(new Binop(ret, t1, 11, t2));break;
@@ -533,13 +572,13 @@ public class Translate extends Semant{
 			return ret;
 		}
 	}
-	public Addr tranShift_expression(Shift_expression x){
+	public Temp tranShift_expression(Shift_expression x){
 		if(x._link == null)
 			return tranAdditive_expression(x._x);
 		else{
 			Addr t1 = tranShift_expression(x._link);
 			Addr t2 = tranAdditive_expression(x._x);
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			switch(x._sop){
 				case SHL: emit(new Binop(ret, t1, 16, t2));break;
 				case SHR: emit(new Binop(ret, t1, 17, t2));break;
@@ -547,13 +586,13 @@ public class Translate extends Semant{
 			return ret;
 		}
 	}
-	public Addr tranAdditive_expression(Additive_expression x){
+	public Temp tranAdditive_expression(Additive_expression x){
 		if(x._link == null)
 			return tranMultiplicative_expression(x._x);
 		else{
 			Addr t1 = tranAdditive_expression(x._link);
 			Addr t2 = tranMultiplicative_expression(x._x);
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			switch(x._aop){
 				case PLUS: emit(new Binop(ret, t1, 0, t2));break;
 				case MINUS: emit(new Binop(ret, t1, 1, t2));break;
@@ -561,13 +600,13 @@ public class Translate extends Semant{
 			return ret;
 		}
 	}
-	public Addr tranMultiplicative_expression(Multiplicative_expression x){
+	public Temp tranMultiplicative_expression(Multiplicative_expression x){
 		if(x._link == null)
 			return tranCast_expression(x._x);
 		else{
 			Addr t1 = tranMultiplicative_expression(x._link);
 			Addr t2 = tranCast_expression(x._x);
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			switch(x._mop){
 				case MULTIPLY: emit(new Binop(ret, t1, 2, t2));break;
 				case DIVIDE: emit(new Binop(ret, t1, 3, t2));break;
@@ -576,32 +615,32 @@ public class Translate extends Semant{
 			return ret;
 		}
 	}
-	public Addr tranCast_expression(Cast_expression x){
+	public Temp tranCast_expression(Cast_expression x){
 		if(x._x != null)
 			return tranUnary_expression(x._x);
 		else{
-			Addr t = new Temp();
+			Temp t = Constants.now.newLocal();
 			Addr t1 = tranCast_expression(x._link);
 			emit(new Unary(t, x._ty, t1));
 			return t;
 		}
 	}
-	public Addr tranUnary_expression(Unary_expression x){
+	public Temp tranUnary_expression(Unary_expression x){
 		if(x instanceof Postfix_expression)
 			return tranPostfix_expression((Postfix_expression)x);
 		if(x instanceof Type_size)
 			return getSize(((Type_size)x)._ty);
 		if(x instanceof Unary_cast_expression){
-			Addr t = tranCast_expression(((Unary_cast_expression)x)._x);
+			Temp t = tranCast_expression(((Unary_cast_expression)x)._x);
 			Type ty = checkCast_expression(((Unary_cast_expression)x)._x);
-			Addr t1 = new Temp();
+			Temp t1 = Constants.now.newLocal();
 			switch(((Unary_cast_expression)x)._uop){
 				case BITAND: emit(new Unary(t1, 1, t));break;
 				case ASTER: {
 					if(x == Left){
 						if(Assign_op==-1){
 							if(ty instanceof RECORD){
-								Addr tmp = new Temp();
+								Addr tmp = Constants.now.newLocal();
 								emit(new Load(tmp, t, new Const(0)));
 								moveRecord(ty, t, tmp);
 							}
@@ -610,7 +649,7 @@ public class Translate extends Semant{
 							emit(new Move(t1, Right));
 						}
 						else{
-							Addr tmp = new Temp();
+							Addr tmp = Constants.now.newLocal();
 							emit(new Load(tmp, t, new Const(0)));
 							emit(new Binop(tmp, tmp, Assign_op, Right));
 							emit(new Store(t, new Const(0), tmp));
@@ -618,7 +657,7 @@ public class Translate extends Semant{
 						}
 					}
 					else
-						emit(new Unary(t1, 2, t));
+						emit(new Load(t1, t, new Const(0)));
 					break;
 				}
 				case PLUS: return t;
@@ -629,33 +668,28 @@ public class Translate extends Semant{
 			return t1;
 		}
 		if(x instanceof Unary_expressions){
-			Addr t = tranUnary_expression(((Unary_expressions)x)._link);
-			Addr ret = new Temp();
+			Temp t = tranUnary_expression(((Unary_expressions)x)._link);
 			switch(((Unary_expressions)x)._uop){
 				case SIZEOF: return getSize(((Unary_expressions)x)._link);
-				case INC: emit(new Unary(ret, 5, t));break;
-				case DEC: emit(new Unary(ret, 6, t));break;
+				case INC: emit(new Unary(t, 5, t));break;
+				case DEC: emit(new Unary(t, 6, t));break;
 			}
-			return ret;
+			return t;
 		}
 		return null;
 	}
-	public Addr tranPostfix_expression(Postfix_expression x){
+	public Temp tranPostfix_expression(Postfix_expression x){
 		if(x instanceof Array_expression)
 			return tranArray_expression((Array_expression)x);
 		if(x instanceof Dec_expression){
-			Addr t = new Temp();
-			Addr t1 = tranPostfix_expression(((Dec_expression)x)._x);
-			emit(new Move(t, t1));
+			Temp t1 = tranPostfix_expression(((Dec_expression)x)._x);
 			emit(new Unary(t1, 6, t1));
-			return t;
+			return t1;
 		}
 		if(x instanceof Inc_expression){
-			Addr t = new Temp();
-			Addr t1 = tranPostfix_expression(((Inc_expression)x)._x);
-			emit(new Move(t, t1));
+			Temp t1 = tranPostfix_expression(((Inc_expression)x)._x);
 			emit(new Unary(t1, 5, t1));
-			return t;
+			return t1;
 		}
 		if(x instanceof Function_expression)
 			return tranFunction_expression((Function_expression)x);
@@ -665,7 +699,7 @@ public class Translate extends Semant{
 			return tranPointer_expression((Pointer_expression)x);
 		return tranPrimary_expression((Primary_expression)x);
 	}
-	public Addr tranFunction_expression(Function_expression x){
+	public Temp tranFunction_expression(Function_expression x){
 		Symbol name = ((Id)x._x)._sym;
 		Entry f = (Entry) env.vEnv.get(((Id)x._x)._sym);
 		Arguments y = x._y;
@@ -674,7 +708,7 @@ public class Translate extends Semant{
 		for(int i = 0; i < cnt; ++i){
 			Addr tmp = tranAssignment_expression(y._l.get(i));
 			if(!(tmp instanceof Temp)){
-				Temp tm = new Temp();
+				Temp tm = Constants.now.newLocal();
 				emit(new Move(tm, tmp));
 				params.add(tm);
 			}
@@ -685,20 +719,20 @@ public class Translate extends Semant{
 			return null;
 		}
 		else{
-			Addr ret = new Temp();
+			Temp ret = Constants.now.newLocal();
 			emit(new Call(ret,Label.forFunction(name), params));
 			return ret;
 		}
 	}
-	public Addr tranArray_expression(Array_expression x){
+	public Temp tranArray_expression(Array_expression x){
 		Addr now = tranExpression(x._y);
 		Addr l = tranPostfix_expression(x._x);
-		Addr ret = new Temp();
+		Temp ret = Constants.now.newLocal();
 		Type ty = checkArray_expression(x);
 		if(now instanceof Const){
 			if(x == Left){
 				if(ty instanceof RECORD){
-					Addr tmp = new Temp();
+					Addr tmp = Constants.now.newLocal();
 					emit(new Load(tmp, l ,((Const)now)));
 					moveRecord(ty, tmp, Right);
 				}
@@ -711,13 +745,13 @@ public class Translate extends Semant{
 			return ret;
 		}
 		else{
-			Addr tmp = new Temp();
+			Addr tmp = Constants.now.newLocal();
 			emit(new Binop(tmp, now, 2, new Const(Constants.pointerSize)));
 			if(x == Left){
-				Addr t = new Temp();
+				Addr t = Constants.now.newLocal();
 				emit(new Binop(t, l, 0, tmp));
 				if(ty instanceof RECORD){
-					Addr tmp2 = new Temp();
+					Addr tmp2 = Constants.now.newLocal();
 					emit(new Load(tmp2, t, new Const(0)));
 					moveRecord(ty, tmp2, Right);
 				}
@@ -726,17 +760,17 @@ public class Translate extends Semant{
 				emit(new Move(ret, Right));
 			}
 			else{
-				Addr tmp2 = new Temp();
+				Addr tmp2 = Constants.now.newLocal();
 				emit(new Binop(tmp2, l, 0, tmp));
 				emit(new Load(ret, tmp2, new Const(0)));
 			}
 			return ret;
 		}
 	}
-	public Addr tranDot_expression(Dot_expression x){
+	public Temp tranDot_expression(Dot_expression x){
 		Type ty = checkPostfix_expression(x._x);
 		Addr base = tranPostfix_expression(x._x);
-		Addr ret = new Temp();
+		Addr ret = Constants.now.newLocal();
 		for(int i = 0; i < ((RECORD)ty).fields.size(); ++i){
 			if(((RECORD)ty).fields.get(i).name == x._sym){
 				if(i == 0)ret=new Const(0);
@@ -746,12 +780,12 @@ public class Translate extends Semant{
 			if(i == 0)emit(new Move(ret, getSize(((RECORD)ty).fields.get(i).type)));
 			else emit(new Binop(ret, ret, 0, getSize(((RECORD)ty).fields.get(i).type)));
 		}
-		Addr ret2 = new Temp();
+		Addr ret2 = Constants.now.newLocal();
 		emit(new Binop(ret2, base, 0, ret));
-		Addr ret3 = new Temp();
+		Temp ret3 = Constants.now.newLocal();
 		if(x == Left){
 			if(ty instanceof RECORD){
-				Addr tmp = new Temp();
+				Addr tmp = Constants.now.newLocal();
 				emit(new Load(tmp, ret2, new Const(0)));
 				moveRecord(ty, tmp, Right);
 			}
@@ -763,12 +797,12 @@ public class Translate extends Semant{
 			emit(new Load(ret3, ret2, new Const(0)));
 		return ret3;
 	}
-	public Addr tranPointer_expression(Pointer_expression x){
+	public Temp tranPointer_expression(Pointer_expression x){
 		Type ty = checkPostfix_expression(x);
 		Addr bas = tranPostfix_expression(x._x);
-		Addr base = new Temp();
+		Addr base = Constants.now.newLocal();
 		emit(new Unary(base, 2, bas));
-		Addr ret = new Temp();
+		Addr ret = Constants.now.newLocal();
 		for(int i = 0; i < ((RECORD)ty).fields.size(); ++i){
 			if(((RECORD)ty).fields.get(i).name == x._y){
 				if(i == 0)ret=new Const(0);
@@ -778,12 +812,12 @@ public class Translate extends Semant{
 			if(i == 0)emit(new Move(ret, getSize(((RECORD)ty).fields.get(i).type)));
 			else emit(new Binop(ret, ret, 0, getSize(((RECORD)ty).fields.get(i).type)));
 		}
-		Addr ret2 = new Temp();
+		Addr ret2 = Constants.now.newLocal();
 		emit(new Binop(ret2, base, 0, ret));
-		Addr ret3 = new Temp();
+		Temp ret3 = Constants.now.newLocal();
 		if(x == Left){
 			if(ty instanceof RECORD){
-				Addr tmp = new Temp();
+				Addr tmp = Constants.now.newLocal();
 				emit(new Load(tmp, ret2, new Const(0)));
 				moveRecord(ty, tmp, Right);
 			}
@@ -795,13 +829,19 @@ public class Translate extends Semant{
 			emit(new Load(ret3, ret2, new Const(0)));
 		return ret3;
 	}
-	public Addr tranPrimary_expression(Primary_expression x){
-		if(x instanceof CharLiteral)
-			return new Const(((CharLiteral)x)._x);
-		if(x instanceof IntLiteral)
-			return new Const(((IntLiteral)x)._x);
+	public Temp tranPrimary_expression(Primary_expression x){
+		if(x instanceof CharLiteral){
+			Temp ret = Constants.now.newLocal();
+			emit(new Move(ret, new Const(((CharLiteral)x)._x)));
+			return ret;
+		}
+		if(x instanceof IntLiteral){
+			Temp ret = Constants.now.newLocal();
+			emit(new Move(ret, new Const(((IntLiteral)x)._x)));
+			return ret;
+		}
 		if(x instanceof Id){
-			Addr ret = (Addr)((VarEntry)env.vEnv.get(((Id)x)._sym)).p;
+			Temp ret = (Temp)((VarEntry)env.vEnv.get(((Id)x)._sym)).p;
 			Type ty = ((VarEntry)env.vEnv.get(((Id)x)._sym)).ty;
 			if(x == Left)
 				if(ty instanceof RECORD)
@@ -815,21 +855,23 @@ public class Translate extends Semant{
 		if(x instanceof StringLiteral){
 			Label ret = new Label();
 			emit(new DataFrag(ret, ((StringLiteral)x)._s));
-			return ret;
+			Temp t = Constants.now.newLocal();
+			emit(new Move(t, ret));
+			return t;
 		}
 		return null;
 	}
 	public void moveRecord(Type ty, Addr t1, Addr t){
 		if(ty instanceof UNION){
-			Addr temp = new Temp();
+			Addr temp = Constants.now.newLocal();
 			emit(new Load(temp, t, new Const(0)));
 			emit(new Store(t1, new Const(0), temp));
 		}
 		else{
-			Addr temp = new Temp();
-			Addr r = new Temp();
+			Addr temp = Constants.now.newLocal();
+			Addr r = Constants.now.newLocal();
 			emit(new Move(r, t));
-			Addr r1 = new Temp();
+			Addr r1 = Constants.now.newLocal();
 			emit(new Move(r1, t1));
 			for(int i = 0; i < ((RECORD)ty).fields.size(); ++i){
 				emit(new Load(temp, r, new Const(0)));
@@ -841,6 +883,31 @@ public class Translate extends Semant{
 					emit(new Binop(r1, r1, 0, rr));
 				}
 			}
+		}
+	}
+	private int calculateBinop(int op, int a, int b) {
+		int[] results = {
+				a + b, a - b, a * b, (b == 0 ? 0 : a / b),
+				(b == 0 ? 0 : a % b), (a | b), (a ^ b), (a & b),
+				(a == b ? 1 : 0), (a != b ? 1 : 0),
+				(a < b ? 1 : 0), (a <= b ? 1 : 0),
+				(a > b ? 1 : 0), (a >= b ? 1 : 0),
+				(a!=0?true:false || b!=0?true:false)?1:0, (a!=0?true:false && b!=0?true:false)?1:0, (a << b), (a >> b)
+		};
+		return results[op];
+	}
+	public Addr makeBinop(Temp t, Addr x, Addr y, int op){
+		if(x instanceof Const){
+			Addr tmp = x;
+			x = y;
+			y = tmp;
+		}
+		if(x instanceof Const && t == null)
+			return new Const(calculateBinop(op, ((Const)x).value, ((Const)y).value));
+		else{
+			if(t == null)t = Constants.now.newLocal();
+			emit(new Binop(t, x, op, y));
+			return t;
 		}
 	}
 }

@@ -1,9 +1,15 @@
 package cnx.env;
 
+import cnx.translate.Level;
+import cnx.temp.Label;
+
 public class Constants {
+	public static Level now = new Level();
+	public static Label exit;
 	public static final int intSize = 4;
-	public static final int charSize = 1;
+	public static final int charSize = 4;
 	public static final int pointerSize = 4;
+	public static final String top_level = "PROGRAM";
 	
 	public static final String[] bopStr = {
 		"+", "-", "*", "/", "%", "|", "^", "&", "==", "!=", "<", "<=", ">", ">=", "||", "&&", "<<", ">>"
@@ -15,8 +21,8 @@ public class Constants {
 	
 	public static int baseOfSavedRegisters = 8;	// start from $t0
 	public static int numOfSavedRegisters = 18;
-	static final int paramRegBase = 4;	// start from $a0
-	static final int paramRegNum  = 4;	// $a0-$a3
+	public static final int paramRegBase = 4;	// start from $a0
+	public static final int paramRegNum  = 4;	// $a0-$a3
 	public static final String[] regNames = {
 		"zero", "at",
 		"v0", "v1",

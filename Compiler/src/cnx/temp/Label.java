@@ -16,15 +16,23 @@ public class Label implements Addr{
 
 	public Label() {
 		this("L" + count++);
-		forFunc = false;
 	}
-	
-	public boolean forFunc = true;
 	
 	public static Label forFunction(Symbol name) {
 		Label l = new Label();
-		l.name += "_" + name;
-		l.forFunc = true;
+		l.name = name.toString();
+		return l;
+	}
+	
+	public static Label forFunctionExit(Symbol name){
+		Label l = new Label();
+		l.name = "__" + name;
+		return l;
+	}
+	
+	public static Label forFunctionExit(String name){
+		Label l = new Label();
+		l.name = "__" + name;
 		return l;
 	}
 	

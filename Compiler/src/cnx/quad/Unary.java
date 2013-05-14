@@ -6,6 +6,7 @@ import java.util.Set;
 import cnx.env.Constants;
 import cnx.temp.*;
 import cnx.ast.*;
+import cnx.assem.*;
 
 public class Unary extends Quad {
 	private Addr dest,x;
@@ -63,5 +64,17 @@ public class Unary extends Quad {
 		if (x.equals(old)) {
 			x = t;
 		}
+	}
+	
+	@Override
+	public AssemList gen(){
+		switch(opStr){
+			case 0: return L(new Assem("neg @, %", dest, x));
+			case 3: return L(new Assem("not @, %", dest, x));
+			case 4: return L(new Assem("seq @, %, $zero", dest, x));
+			case 5: return L(new Assem("addi @, %, %", dest, x, new Const(1)));
+			case 6: return L(new Assem("subi @, %, %", dest, x, new Const(1)));
+		}
+		return null;
 	}
 }

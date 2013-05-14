@@ -1,6 +1,7 @@
 package cnx.quad;
 
 import cnx.temp.*;
+import cnx.assem.*;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -34,5 +35,12 @@ public class Move extends Quad {
 		if (x.equals(old)) {
 			x = t;
 		}
+	}
+	
+	@Override
+	public AssemList gen() {
+		if(x instanceof Temp)return L(new Assem("move @, %", dest, x));
+		if(x instanceof Const)return L(new Assem("li @, %", dest, x));
+		return L(new Assem("la @, %", dest, x));
 	}
 }

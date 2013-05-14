@@ -1,7 +1,6 @@
 package cnx.regalloc;
 
 import java.util.*;
-
 import cnx.analysis.*;
 import cnx.env.Constants;
 import cnx.translate.*;
@@ -22,7 +21,7 @@ public final class LinearScan implements RegAlloc, Comparator<LiveInterval> {
 		
 		for (LiveInterval i : cu.getLiveIntervals()) {
 			expireOldIntervals(i);
-			if (active.size() == R) {
+			if (active.size() == R || i.getTemp().allArea) {
 				spillAtInterval(i);
 			}
 			else {
@@ -32,8 +31,9 @@ public final class LinearScan implements RegAlloc, Comparator<LiveInterval> {
 		}
 		
 		for (LiveInterval i : cu.getLiveIntervals()) {
-			if (!i.spilled)
-				cu.useRegister(i.register);
+			if (!i.spilled) {
+				cu.getLevel().useRegister(i.register);
+			}
 		}
 	}
 	
@@ -51,6 +51,11 @@ public final class LinearScan implements RegAlloc, Comparator<LiveInterval> {
 	}
 	
 	public void spillAtInterval(LiveInterval i) {
+		if(active.size() == 0){
+			i.spilled = true;
+			i.register = Constants.spillReg;
+			return;
+		}
 		LiveInterval spill = active.get(active.size() - 1);	// last interval in active
 		if (spill.getEndPoint() > i.getEndPoint()) {
 			i.register = spill.register;

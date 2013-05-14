@@ -1,6 +1,9 @@
 package cnx.quad;
 
 import cnx.temp.*;
+import cnx.assem.*;
+import cnx.env.Constants;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -39,5 +42,10 @@ public final class Store extends Quad {
 		if (z.equals(old)) {
 			z = t;
 		}
+	}
+	
+	@Override
+	public AssemList gen() {
+		return L(new Assem("sw %, %(%)", z, y.value * Constants.pointerSize, x));
 	}
 }

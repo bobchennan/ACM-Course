@@ -5,6 +5,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import cnx.assem.*;
+
 public class IfFalse extends Quad {
 	private Addr x;
 	private Label l;
@@ -44,5 +46,10 @@ public class IfFalse extends Quad {
 		Set<Temp> set = new LinkedHashSet<Temp>();
 		set.add((Temp)x);
 		return set;
+	}
+	
+	@Override
+	public AssemList gen() {
+		return L(new Assem("beqz %, %", x, l));
 	}
 }

@@ -1,5 +1,6 @@
 package cnx.translate;
 
+import cnx.assem.*;
 import cnx.temp.*;
 import cnx.quad.*;
 
@@ -38,5 +39,12 @@ public class DataFrag extends Quad {
 			}
 		}
 		return buf.toString();
+	}
+	
+	@Override
+	public AssemList gen() {
+		return L(new Assem("!%:", label),
+				L(new Assem(".asciiz \"%\"", escapeSpecialChars(value)),
+				L(new Assem(".align 2"))));
 	}
 }

@@ -4,6 +4,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import cnx.assem.*;
 
 import cnx.temp.*;
 
@@ -71,4 +72,18 @@ public abstract class Quad {
 	
 	public Set<Temp> IN = new LinkedHashSet<Temp>();
 	public Set<Temp> OUT = new LinkedHashSet<Temp>();
+	
+	public abstract AssemList gen();
+	
+	protected static AssemList L(Assem h, AssemList t) {
+		return AssemList.L(h, t);
+	}
+	
+	protected static AssemList L(Assem h) {
+		return AssemList.L(h);
+	}
+	
+	protected static AssemList L(AssemList a, AssemList b) {
+		return AssemList.L(a, b);
+	}
 }

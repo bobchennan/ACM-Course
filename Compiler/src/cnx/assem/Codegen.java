@@ -16,7 +16,7 @@ public class Codegen {
 	private LinkedList<Assem> inits = new LinkedList<Assem>();
 	
 	public void gen(Assem assem) {
-		inits.add(assem);
+		lines.add(assem.toString());
 	}
 
 	public void gen(AssemList assems) {
@@ -25,6 +25,8 @@ public class Codegen {
 		}
 	}
 
+	private ArrayList<String> lines = new ArrayList<String>();
+	
 	public void gen(CompilationUnit cu, RegAlloc allocator) {
 		ArrayList<Quad> quads = new ArrayList<Quad>(cu.getQuads());
 		
@@ -34,12 +36,14 @@ public class Codegen {
 				assems.add(p.head);
 			}
 		}
+		for (Assem assem : assems) {
+			lines.add(assem.toString(allocator));
+		}
 	}
 	
-	public void flush(PrintStream out, boolean opt) {
+	public void flush(PrintStream out) {
 		
-		for (Assem init : inits) {
-			out.println(init);
-		}
+		for (String x : lines)
+			out.println(x);
 	}
 }

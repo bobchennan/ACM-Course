@@ -549,7 +549,7 @@ public class Semant {
 		if(x instanceof Constant) return INT.getInstance();
 		if(x instanceof Expression) return checkExpression((Expression) x);
 		if(x instanceof Id){
-			Entry y = (VarEntry) env.vEnv.get(((Id)x)._sym);
+			Entry y = (Entry)env.vEnv.get(((Id)x)._sym);
 			if(!(y instanceof VarEntry))
 				error();
 			else return ((VarEntry)y).ty;

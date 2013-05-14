@@ -5,6 +5,7 @@ import java.util.Set;
 
 import cnx.temp.*;
 import cnx.env.Constants;
+import cnx.assem.*;
 
 public class Binop extends Quad {
 	private Addr dest,x,y;
@@ -43,5 +44,55 @@ public class Binop extends Quad {
 		if (y.equals(old)) {
 			y = t;
 		}
+	}
+	
+	String getOp(int op){
+		switch(op){
+			case 0: return "addu";
+			case 1: return "subu";
+			case 2: return "mul";
+			case 3: return "divu";
+			case 4: return "remu";
+			case 5: return "or";
+			case 6: return "xor";
+			case 7: return "and";
+			case 8: return "seq";
+			case 9: return "sne";
+			case 10: return "slt";
+			case 11: return "sle";
+			case 12: return "sgt";
+			case 13: return "sge";
+			case 16: return "sll";
+			case 17: return "srl";
+			default: return null;
+		}
+	}
+	
+	String getOpi(int op){
+		switch(op){
+			case 0: return "addiu";
+			case 1: return "subu";
+			case 2: return "mul";
+			case 3: return "divu";
+			case 4: return "remu";
+			case 5: return "or";
+			case 6: return "xor";
+			case 7: return "and";
+			case 8: return "seq";
+			case 9: return "sne";
+			case 10: return "slt";
+			case 11: return "sle";
+			case 12: return "sgt";
+			case 13: return "sge";
+			case 16: return "sll";
+			case 17: return "srl";
+			default: return null;
+		}
+	}
+	
+	@Override
+	public AssemList gen() {
+		if(y instanceof Temp)return L(new Assem(getOp(opStr)+" @, %, %", dest, x, y));
+		else return L(new Assem(getOpi(opStr)+" @, %, %", dest, x, y));
 	}
 }

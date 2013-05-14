@@ -1,6 +1,8 @@
 package cnx.quad;
 
 import cnx.temp.*;
+import cnx.assem.*;
+import cnx.env.Constants;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -39,5 +41,30 @@ public class Call extends Quad {
 		Set<Temp> set = new LinkedHashSet<Temp>();
 		set.addAll(params);
 		return set;
+	}
+	
+	@Override
+	public AssemList gen() {
+		AssemList saves = L(saveArguments(),
+				L(new Assem("jal %", p)));
+		if(x != null)
+			saves = L(saves, L(new Assem("move @, $v0", x)));
+		return saves;
+	}
+	
+	private AssemList saveArguments() {
+		AssemList saves = null;
+		int i = 0;
+		while (i < Constants.paramRegNum && i < params.size()) {
+			saves = L(saves, L(new Assem("move $%, %", Constants.regNames[Constants.paramRegBase + i], params.get(i))));
+			++i;
+		}
+		if (i < params.size()) {	// param reg is not enough
+			while (i < params.size()) {
+				saves = L(saves, L(new Assem("sw %, %($v1)", params.get(i), i * Constants.pointerSize)));
+				++i;
+			}
+		}
+		return saves;
 	}
 }

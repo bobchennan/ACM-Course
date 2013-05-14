@@ -1,17 +1,26 @@
 package cnx.temp;
 
 import cnx.analysis.LiveInterval;
+import cnx.env.Constants;
+import cnx.translate.Level;
 
 public class Temp implements Addr{
 	public static int count = 0;
 	public int num = 0;
+	public Level home = null;
+	public int index = 0;
+	public boolean allArea = false;
 
 	public String toString() {
 		return "t" + num;
 	}
 	
-	public Temp() {
+	public Temp(Level l, int idx) {
 		num = count++;
+		home = l;
+		index = idx;
+		if(l.label.toString() == Constants.top_level)
+			allArea = true;
 	}
 	
 	@Override

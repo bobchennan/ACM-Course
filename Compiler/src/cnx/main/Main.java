@@ -5,18 +5,19 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.*;
 
-import tiger.RegAlloc.LinearScan;
-
 import cnx.syntactic.*;
 import cnx.semant.*;
 import cnx.translate.CompilationUnit;
 import cnx.translate.Translate;
 import cnx.analysis.*;
 import cnx.ast.Program;
+import cnx.env.Constants;
 import cnx.error.Error;
 import cnx.quad.*;
 import cnx.regalloc.*;
 import cnx.assem.*;
+import cnx.temp.*;
+import cnx.translate.DataFrag;
 
 public class Main {
 	private static int compile(String filename) throws Exception{
@@ -42,41 +43,64 @@ public class Main {
 		formater.start(tree);
 		
 		Translate tran = new Translate();
+		tran.ans.add(new LABEL(new Label(Constants.top_level)));
+		tran.ans.add(new Enter(new Label(Constants.top_level), new LinkedList<Temp>()));
 		tran.tranProgram(tree);
+		tran.ans.add(new Leave(new Label(Constants.top_level)));
 		
 		Analyzer ana = new Analyzer();
-		System.out.println("----------Top Level----------");
+		/*System.out.println("----------Top Level----------");
 		for(Quad p:tran.ans)
 			System.out.println(p);
 		System.out.println("---------!Top Level----------");
 		System.out.println("");
 		for(CompilationUnit p:tran.fun){
-			System.out.println("----------" + p.getLabel() + "----------");
+			System.out.println("----------" + "----------");
 			p.findBlocks(ana);
 			p.findLiveness(ana);
 			LinearScan sc = new LinearScan(p, ana);
 			for(Block q:p.getBlocks()){
 				System.out.print(q);
-				System.out.println(q.IN);
-				System.out.println(sc.map(q.IN));
-				System.out.println(q.OUT);
-				System.out.println(sc.map(q.OUT));
-				System.out.println("");
 			}
-			System.out.println("---------!" + p.getLabel() + "----------");
+			System.out.println("---------!" + "----------");
 			System.out.println("");
-		}
+		}*/
 		
 		Codegen codegen = new Codegen();
+		codegen.gen(new Assem(".data"));
+		
+		codegen.gen(new Assem(".align 2"));
+		codegen.gen(new Assem(".globl args"));
+		codegen.gen(new Assem("!args:\t.space %", (tran.maxArg + 1) * Constants.pointerSize));
+		
+		codegen.gen(new Assem(".align 2"));
+		codegen.gen(new Assem(".globl disp"));
+		codegen.gen(new Assem("!disp:\t.space %", (Constants.now.localSize() + 1) * Constants.pointerSize));
+
+		codegen.gen(new Assem(".align 2"));
+		codegen.gen(new Assem("!gc_sp_limit:"));
+		codegen.gen(new Assem(".word 0"));
+		
+		codegen.gen(new Assem(".align 2"));
+		
+		for (DataFrag dataFrag : tran.getDataFrags()) {
+			codegen.gen(dataFrag.gen());
+		}
+		
 		codegen.gen(new Assem(".text"));
 		codegen.gen(new Assem(".align 2"));
-		codegen.gen(new Assem(".global main"));
-		codegen.gen(new Assem("main:"));
-		codegen.gen(new Assem("j top_level"));
+		codegen.gen(new Assem(".globl main"));
 		for (CompilationUnit u : tran.fun) {
+			u.findBlocks(ana);
+			u.findLiveness(ana);
 			codegen.gen(u, new LinearScan(u, ana));
 		}
-		codegen.gen(new Assem("top_level:"));
+		
+		CompilationUnit top = new CompilationUnit(tran.ans);
+		top.findBlocks(ana);
+		top.findLiveness(ana);
+		codegen.gen(top, new LinearScan(top, ana));
+		codegen.flush(System.out);
 		
 		return 0;
 	}
