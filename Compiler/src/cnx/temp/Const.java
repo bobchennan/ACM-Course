@@ -12,6 +12,11 @@ public class Const implements Addr{
 	}
 	
 	@Override
+	public Const clone(){
+		return new Const(value);
+	}
+	
+	@Override
 	public boolean equals(Object other) {
 		if (other instanceof Const) {
 			return value == ((Const) other).value;

@@ -582,6 +582,8 @@ public class Semant {
 			else
 				return checkLeft(((Unary_cast_expression)x)._x);
 		}
+		if(x instanceof Unary_expressions)
+			return false;
 		return true;
 	}
 }

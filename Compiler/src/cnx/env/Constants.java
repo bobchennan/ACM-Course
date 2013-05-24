@@ -11,6 +11,10 @@ public class Constants {
 	public static final int pointerSize = 4;
 	public static final String top_level = "PROGRAM";
 	
+	public static final boolean[] isInvertable = {
+		true, false, true, false, false, true, true, true, true, true, false, false, false, false, true, true, false, false
+	};
+	
 	public static final String[] bopStr = {
 		"+", "-", "*", "/", "%", "|", "^", "&", "==", "!=", "<", "<=", ">", ">=", "||", "&&", "<<", ">>"
 	};

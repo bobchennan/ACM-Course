@@ -6,6 +6,11 @@ public class Label implements Addr{
 	public static int count = 0;
 	private String name = "";
 
+	@Override
+	public Label clone(){
+		return this;
+	}
+	
 	public String toString() {
 		return name;
 	}

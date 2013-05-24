@@ -21,7 +21,7 @@ public final class LinearScan implements RegAlloc, Comparator<LiveInterval> {
 		
 		for (LiveInterval i : cu.getLiveIntervals()) {
 			expireOldIntervals(i);
-			if (active.size() == R || i.getTemp().allArea) {
+			if (active.size() == R || i.getTemp().allArea || i.getTemp().haveAddress) {
 				spillAtInterval(i);
 			}
 			else {
@@ -51,7 +51,7 @@ public final class LinearScan implements RegAlloc, Comparator<LiveInterval> {
 	}
 	
 	public void spillAtInterval(LiveInterval i) {
-		if(active.size() == 0){
+		if(i.getTemp().allArea){
 			i.spilled = true;
 			i.register = Constants.spillReg;
 			return;

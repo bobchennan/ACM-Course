@@ -10,7 +10,7 @@ public class Move extends Quad {
 	
 	public Move(Addr dest, Addr x){
 		this.dest = dest;
-		this.x = x;
+		this.x = x.clone();
 	}
 	public String toString(){
 		return dest + " = " + x;

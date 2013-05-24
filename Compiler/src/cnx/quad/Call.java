@@ -45,6 +45,11 @@ public class Call extends Quad {
 	
 	@Override
 	public AssemList gen() {
+		if(p.toString() == "printf" && params.size() == 1){
+			//AssemList saves = L(new Assem("li $v0, 4"),L(new Assem("syscall")));
+			//return saves;
+			p = new Label("printf2");
+		}
 		AssemList saves = L(saveArguments(),
 				L(new Assem("jal %", p)));
 		if(x != null)

@@ -10,9 +10,19 @@ public class Temp implements Addr{
 	public Level home = null;
 	public int index = 0;
 	public boolean allArea = false;
+	public boolean haveAddress = false;
 
 	public String toString() {
 		return "t" + num;
+	}
+	
+	public void setAddress(){
+		haveAddress = true;
+	}
+	
+	@Override
+	public Temp clone(){
+		return this;
 	}
 	
 	public Temp(Level l, int idx) {

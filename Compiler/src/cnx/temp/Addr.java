@@ -5,4 +5,5 @@ package cnx.temp;
  * or a compiler-generated temporary.
  */
 public interface Addr {
+	public Addr clone();
 }

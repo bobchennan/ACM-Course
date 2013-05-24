@@ -12,7 +12,7 @@ public class IfFalse extends Quad {
 	private Label l;
 	
 	public IfFalse(Addr x, Label l){
-		this.x = x;
+		this.x = x.clone();
 		this.l = l;
 	}
 	public String toString(){
@@ -50,6 +50,8 @@ public class IfFalse extends Quad {
 	
 	@Override
 	public AssemList gen() {
-		return L(new Assem("beqz %, %", x, l));
+		if(x instanceof Temp)return L(new Assem("beqz %, %", x, l));
+		else if(((Const)x).value == 0)return L(new Assem("j %", l));
+		else return null;
 	}
 }

@@ -15,7 +15,7 @@ public class Binop extends Quad {
 		this.dest = dest;
 		this.x = x;
 		this.opStr = opStr;
-		this.y = y;
+		this.y = y.clone();
 	}
 	public String toString(){
 		return dest.toString() + " = " + x.toString() + " " + Constants.bopStr[opStr] + " " + y.toString();

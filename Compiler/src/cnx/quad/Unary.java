@@ -72,8 +72,8 @@ public class Unary extends Quad {
 			case 0: return L(new Assem("neg @, %", dest, x));
 			case 3: return L(new Assem("not @, %", dest, x));
 			case 4: return L(new Assem("seq @, %, $zero", dest, x));
-			case 5: return L(new Assem("addi @, %, %", dest, x, new Const(1)));
-			case 6: return L(new Assem("subi @, %, %", dest, x, new Const(1)));
+			case 5: return L(new Assem("addiu @, %, %", dest, x, new Const(1)));
+			case 6: return L(new Assem("subu @, %, %", dest, x, new Const(1)));
 		}
 		return null;
 	}

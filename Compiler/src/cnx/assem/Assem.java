@@ -109,7 +109,7 @@ public class Assem {
 				if(t.allArea)
 					before.append("\t\t\tlw $" + Constants.regNames[r] + ", " + Constants.pointerSize * t.index + "($gp)\t# load for spilling\n");
 				else
-					before.append("\t\t\tlw $" + Constants.regNames[r] + ", " + Constants.pointerSize * t.index + "($sp)\t# load for spilling");
+					before.append("\t\t\tlw $" + Constants.regNames[r] + ", " + Constants.pointerSize * t.index + "($sp)\t# load for spilling\n");
 			}
 		}
 		

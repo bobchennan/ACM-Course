@@ -1,8 +1,6 @@
 package cnx.main;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 import cnx.syntactic.*;
@@ -20,7 +18,7 @@ import cnx.temp.*;
 import cnx.translate.DataFrag;
 
 public class Main {
-	private static int compile(String filename) throws Exception{
+	private static int compile(String filename, boolean opt) throws Exception{
 		InputStream inp = new BufferedInputStream(new FileInputStream(filename));
 		Parser parser = new Parser(inp);
 		java_cup.runtime.Symbol parseTree = null;
@@ -49,23 +47,19 @@ public class Main {
 		tran.ans.add(new Leave(new Label(Constants.top_level)));
 		
 		Analyzer ana = new Analyzer();
-		/*System.out.println("----------Top Level----------");
+		PrintStream mid = new PrintStream(new BufferedOutputStream(new FileOutputStream("cnx.tmp")));
+		mid.println("----------Top Level----------");
 		for(Quad p:tran.ans)
-			System.out.println(p);
-		System.out.println("---------!Top Level----------");
-		System.out.println("");
+			mid.println(p);
+		mid.println("---------!Top Level----------");
+		mid.println("");
 		for(CompilationUnit p:tran.fun){
-			System.out.println("----------" + "----------");
-			p.findBlocks(ana);
-			p.findLiveness(ana);
-			LinearScan sc = new LinearScan(p, ana);
-			for(Block q:p.getBlocks()){
-				System.out.print(q);
-			}
-			System.out.println("---------!" + "----------");
-			System.out.println("");
-		}*/
+			for(Quad q: p.getQuads())
+				mid.println(q);
+		}
+		mid.close();
 		
+		PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream("cnx.asm")));
 		Codegen codegen = new Codegen();
 		codegen.gen(new Assem(".data"));
 		
@@ -100,15 +94,26 @@ public class Main {
 		top.findBlocks(ana);
 		top.findLiveness(ana);
 		codegen.gen(top, new LinearScan(top, ana));
-		codegen.flush(System.out);
+		codegen.flush(out);
+		printRuntime(out);
+		out.close();
 		
 		return 0;
+	}
+	
+	private static void printRuntime(PrintStream out) throws FileNotFoundException {
+		String runtime_s = "runtime.asm";
+		Scanner scanner = new Scanner(new BufferedInputStream(Main.class.getResourceAsStream(runtime_s)));
+		while (scanner.hasNextLine()) {
+			out.println(scanner.nextLine());
+		}
+		scanner.close();
 	}
 	
 	public static void main(String argv[]) {
 		if (argv.length > 0) {
 			try {
-				compile(argv[0]);
+				compile(argv[0], true);
 			}
 			catch (Exception e) {
 				e.printStackTrace(System.out);

@@ -59,11 +59,13 @@ public class Beautifier {
 	public void visitRecord_type(Record_type x)throws Exception{
 		if(x._isSt)out.write("struct");
 		else out.write("union");
-		if(x._sym != null)out.write(' '+x._sym.toString());
+		if(x._sym != null)out.write(' '+x._sym.toString()+'\n');
+		Indent();
 		out.write("{\n");
 		++indent;
 		visitStructs(x._x);
 		--indent;
+		Indent();
 		out.write("}");
 	}
 	public void visitStructs(Structs x)throws Exception{
@@ -113,7 +115,9 @@ public class Beautifier {
 		if(x._arg != null)
 			visitParameters(x._arg);
 		out.write(")\n");
+		++indent;
 		visitStatement(x._st);
+		--indent;
 	}
 	public void visitPlain_declarator(Plain_declarator x)throws Exception{
 		while(x._link != null){
@@ -169,21 +173,26 @@ public class Beautifier {
 		}
 	}
 	public void visitStatement(Statement x)throws Exception{
-		Indent();
 		if(x instanceof Expression_statement){
+			Indent();
 			if(((Expression_statement)x)._x != null)
 				visitExpression(((Expression_statement)x)._x);
 			out.write(";\n");
 		}
 		if(x instanceof Compound_statement){
+			--indent;
+			Indent();
 			out.write("{\n");
 			++indent;
 			visitDeclarations(((Compound_statement)x)._x);
 			visitStatements(((Compound_statement)x)._y);
 			--indent;
+			Indent();
 			out.write("}\n");
+			++indent;
 		}
 		if(x instanceof Selection_statement){
+			Indent();
 			out.write("if(");
 			visitExpression(((Selection_statement)x)._exp);
 			out.write(")\n");
@@ -199,6 +208,7 @@ public class Beautifier {
 			}
 		}
 		if(x instanceof For_statement){
+			Indent();
 			out.write("for(");
 			if(((For_statement)x)._exp1 != null)
 				visitExpression(((For_statement)x)._exp1);
@@ -218,6 +228,7 @@ public class Beautifier {
 			--indent;
 		}
 		if(x instanceof While_statement){
+			Indent();
 			out.write("while(");
 			visitExpression(((While_statement)x)._exp);
 			out.write(")\n");
@@ -226,12 +237,15 @@ public class Beautifier {
 			--indent;
 		}
 		if(x instanceof Continue_statement){
+			Indent();
 			out.write("continue;\n");
 		}
 		if(x instanceof Break_statement){
+			Indent();
 			out.write("break;\n");
 		}
 		if(x instanceof Return_statement){
+			Indent();
 			out.write("return ");
 			visitExpression(((Return_statement)x)._exp);
 			out.write(";\n");

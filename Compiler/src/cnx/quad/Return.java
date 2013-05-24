@@ -16,7 +16,7 @@ public class Return extends Quad {
 	private Label exit = null;
 	
 	public Return(Addr a) {
-		addr = a;
+		addr = a.clone();
 		level = Constants.now;
 		exit = Constants.exit;
 	}
@@ -28,7 +28,7 @@ public class Return extends Quad {
 	@Override
 	public Set<Temp> use() {
 		Set<Temp> set = new LinkedHashSet<Temp>();
-		set.add((Temp)addr);
+		if(addr instanceof Temp)set.add((Temp)addr);
 		return set;
 	}
 	
@@ -41,6 +41,7 @@ public class Return extends Quad {
 	
 	@Override
 	public AssemList gen() {
-		return L(new Assem("move $v0, %", addr),L(new Assem("j %", exit)));
+		if(addr instanceof Temp)return L(new Assem("move $v0, %", addr),L(new Assem("j %", exit)));
+		else return L(new Assem("li $v0, %", addr), L(new Assem("j %", exit)));
 	}
 }
