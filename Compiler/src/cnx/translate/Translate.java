@@ -780,7 +780,25 @@ public class Translate extends Semant{
 		Addr now = tranExpression(x._y);
 		Addr l = tranPostfix_expression(x._x);
 		Type ty = checkArray_expression(x);
-		if(now instanceof Const){
+		Type ty2 = checkPostfix_expression(x._x);
+		if(ty2 instanceof POINTER){
+			Addr tmp = makeBinop(null, getSize(((POINTER)ty2).elementType), now, 2);
+			Addr tmp2 = makeBinop(null, l, tmp, 0);
+			if(((POINTER)ty2).elementType instanceof RECORD)
+				return tmp2;
+			else{
+				if(x != Left){
+					Addr tmp3 = Constants.now.newLocal();
+					emit(new Load(tmp3, tmp2, new Const(0)));
+					return tmp3;
+				}
+				else{
+					makeStore(tmp2, new Const(0), Right);
+					return Right;
+				}
+			}
+		}
+		else if(now instanceof Const){
 			if(x == Left){
 				if(ty instanceof RECORD){
 					Addr tmp = Constants.now.newLocal();

@@ -44,7 +44,7 @@ public class IfFalse extends Quad {
 	@Override
 	public Set<Temp> use() {
 		Set<Temp> set = new LinkedHashSet<Temp>();
-		set.add((Temp)x);
+		if(x instanceof Temp)set.add((Temp)x);
 		return set;
 	}
 	
