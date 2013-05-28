@@ -126,8 +126,6 @@ public class Translate extends Semant{
 				env.vEnv.put(formals.fields.get(i).name,new VarEntry(formals.fields.get(i).type, tmp));
 				params.add(tmp);
 			}
-			if(maxArg < params.size())
-				maxArg = params.size();
 			son.emit(new Enter(f, params));
 			son.tranCompound_statement(x._st);
 			env.endScope();
@@ -136,6 +134,8 @@ public class Translate extends Semant{
 			emit(son.getDataFrags());
 			emit(new CompilationUnit(son.ans));
 			Constants.now = bak;
+			if(maxArg < son.maxArg)
+				maxArg = son.maxArg;
 		}
 	}
 	public void tranDeclarators(Type l, Declarators x){
@@ -766,6 +766,8 @@ public class Translate extends Semant{
 			}
 			else params.add((Temp)tmp);
 		}
+		if(params.size() > maxArg)
+			maxArg = params.size();
 		if(((FunEntry)f).result.equals(VOID.getInstance())){
 			emit(new Call(Label.forFunction(name),params));
 			return null;
@@ -781,7 +783,7 @@ public class Translate extends Semant{
 		Addr l = tranPostfix_expression(x._x);
 		Type ty = checkArray_expression(x);
 		Type ty2 = checkPostfix_expression(x._x);
-		if(ty2 instanceof POINTER){
+		if(!(ty2 instanceof ARRAY)){
 			Addr tmp = makeBinop(null, getSize(((POINTER)ty2).elementType), now, 2);
 			Addr tmp2 = makeBinop(null, l, tmp, 0);
 			if(((POINTER)ty2).elementType instanceof RECORD)
@@ -984,7 +986,7 @@ public class Translate extends Semant{
 				(a == b ? 1 : 0), (a != b ? 1 : 0),
 				(a < b ? 1 : 0), (a <= b ? 1 : 0),
 				(a > b ? 1 : 0), (a >= b ? 1 : 0),
-				(a!=0?true:false || b!=0?true:false)?1:0, (a!=0?true:false && b!=0?true:false)?1:0, (a << b), (a >> b)
+				((a!=0?true:false) || (b!=0?true:false))?1:0, ((a!=0?true:false) && (b!=0?true:false))?1:0, (a << b), (a >> b)
 		};
 		return results[op];
 	}

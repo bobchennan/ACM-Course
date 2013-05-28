@@ -7,8 +7,8 @@ public class Beautifier {
 	private File doc;
 	private FileWriter out;
 	private int indent = 0;
-	public Beautifier()throws Exception{
-		doc = new File("beauty.c");
+	public Beautifier(String x)throws Exception{
+		doc = new File(x);
 		out = new FileWriter(doc, false);
 	}
 	public void Indent()throws Exception{

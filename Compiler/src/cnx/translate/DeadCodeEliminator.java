@@ -14,7 +14,7 @@ public class DeadCodeEliminator {
 	public void eliminate(CompilationUnit u) {
 		List<Quad> result = new LinkedList<Quad>();
 		for (Quad q : u.getQuads()) {
-			if (q instanceof Binop  || q instanceof Load  || q instanceof Move) {
+			if (q instanceof Binop  || q instanceof Load  || q instanceof Move || q instanceof Unary) {
 				Set<Temp> x = new LinkedHashSet<Temp>(q.def());
 				x.retainAll(q.OUT);
 				if (x.size() == 0) {

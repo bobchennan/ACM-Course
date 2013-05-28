@@ -121,11 +121,9 @@ Whitespace = {LineTerm}|[ \t\f]
     {Identifier} 
 	{
 		boolean ty=false;
-		if(ParserTest.isVardef())ty=false;
-		else if(ParserTest.isRecorddef())ty=false;
-		else if(ParserTest.isTypeID(yytext()))ty=true;
+		if(ParserTest.isTypeID(yytext()))ty=true;
 		else ty=false;
-		/*System.out.println(yytext()+" "+(ty?"TYPE":"ID"));*/
+		//System.out.println(yytext()+" "+(ty?"TYPE":"ID"));
 		if(ty)return tok(TYPEID,yytext());
 		else return tok(ID,yytext());
 	}

@@ -25,7 +25,7 @@ public class SemantTest {
 		Semant semant = new Semant();
 		semant.checkProgram(tree);
 		
-		Beautifier formater = new Beautifier();
+		Beautifier formater = new Beautifier(filename+".cnx");
 		formater.start(tree);
 		return 0;
 	}

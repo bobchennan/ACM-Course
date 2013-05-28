@@ -125,8 +125,8 @@ start with program;
       | function_definition:x {:RESULT=x;:}
       ;
  
- declaration::= TYPEDEF {:ParserTest.beginTypedef();:} type_specifier:x declarators:y SEMICOLON {:ParserTest.endTypedef();RESULT=new Declaration(x,y);:}
-            | type_specifier:x init_declarators:y SEMICOLON {:ParserTest.endVardef();RESULT=new Declaration(x,y);:}
+ declaration::= TYPEDEF type_specifier:x {:ParserTest.beginTypedef();:} declarators:y SEMICOLON {:ParserTest.endTypedef();RESULT=new Declaration(x,y);:}
+            | type_specifier:x init_declarators:y SEMICOLON {:RESULT=new Declaration(x,y);:}
             | type_specifier:x SEMICOLON {:RESULT=new Declaration(x);:}
             ;
  
@@ -149,7 +149,7 @@ start with program;
             ;
  
  init_declarators::= init_declarators:x COMMA init_declarator:y {:RESULT=x.add(y);:}
-                 | init_declarator:x {:ParserTest.beginVardef();RESULT=new Init_declarators(x);:}
+                 | init_declarator:x {:RESULT=new Init_declarators(x);:}
                  ;
  
  init_declarator::= declarator:x ASSIGN initializer:y {:RESULT=new Init_declarator(x,y);:}
@@ -168,17 +168,17 @@ start with program;
                | CHAR:x  {:RESULT=new CharType();:}
                | INT:x  {:RESULT=new IntType();:}
                | TYPEID:i {:RESULT=new Id_type(symbol(i));:}
-               | struct_or_union:x ID:i {:ParserTest.endRecorddef();:} LBRACE structs:y RBRACE {:RESULT=new Record_type(x,symbol(i),y);:}
-               | struct_or_union:x  LBRACE {:ParserTest.endRecorddef();:} structs:y RBRACE {:RESULT=new Record_type(x,y);:}
-               | struct_or_union:x ID:i {:ParserTest.endRecorddef();RESULT=new Id_type(symbol(i));:}
+               | struct_or_union:x ID:i LBRACE structs:y RBRACE {:RESULT=new Record_type(x,symbol(i),y);:}
+               | struct_or_union:x LBRACE structs:y RBRACE {:RESULT=new Record_type(x,y);:}
+               | struct_or_union:x ID:i {:RESULT=new Id_type(symbol(i));:}
                ;
 
  structs::=type_specifier:x declarators:y SEMICOLON {:RESULT=new Structs(x,y);:}
       | structs:x type_specifier:y declarators:z SEMICOLON{:RESULT=x.add(y,z);:}
       ;
  
- struct_or_union::= STRUCT {:ParserTest.beginRecorddef();RESULT=true;:}
-                | UNION{:ParserTest.beginRecorddef();RESULT=false;:}
+ struct_or_union::= STRUCT {:RESULT=true;:}
+                | UNION{:RESULT=false;:}
                 ;
  
  plain_declaration::= type_specifier:x declarator:y{:RESULT=new Plain_declaration(x,y);:}
@@ -195,7 +195,7 @@ start with program;
       ;
  
  plain_declarator::= ASTER plain_declarator:x {:RESULT=new Plain_declarator(x);:}
-                 | ID:i  {:RESULT=new Plain_declarator(symbol(i));if(ParserTest.isTypedef())ParserTest.addTypeID(i);:}
+                 | ID:i  {:RESULT=new Plain_declarator(symbol(i));if(ParserTest.isTypedef()){ParserTest.addTypeID(i);}:}
                  ;
 
  statement::= expression_statement:x {:RESULT=x;:}

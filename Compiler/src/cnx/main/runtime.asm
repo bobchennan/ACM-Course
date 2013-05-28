@@ -25,7 +25,7 @@ _initArray_loop:
 	jr $ra
 
 printf:
-	subu $sp, $sp, 40 # set up the stack frame,
+	subu $sp, $sp, 44 # set up the stack frame,
 	sw $ra, 32($sp) # saving the local environment.
 	sw $fp, 28($sp)
 	sw $s0, 24($sp)
@@ -36,6 +36,7 @@ printf:
 	sw $s5, 4($sp)
 	sw $s6, 0($sp)
 	sw $s7, 36($sp)
+	sw $s8, 40($sp)
 	addu $fp, $sp, 36
 
 # grab the arguments:
@@ -44,6 +45,7 @@ printf:
 	move $s2, $a2 # arg2 (optional)
 	move $s3, $a3 # arg3 (optional)
 	lw $s7, 16($v1)# arg4 (optional) 
+	lw $s8, 20($v1)# arg5 (optional)
 
 	li $s4, 0 # set # of formats = 0
 	la $s6, printf_buf # set s6 = base of printf buffer.
@@ -68,8 +70,7 @@ printf_fmt:
 	lb $s5, 0($s0) # see what the fmt character is,
 	addu $s0, $s0, 1 # and bump up the pointer.
 
-	beq $s4, 4, printf_loop # if we've already processed 3 args,
-# then *ignore* this fmt.
+	beq $s5, '0', printf_prefix
 	beq $s5, 'd', printf_int # if 'd', print as a decimal integer.
 	beq $s5, 's', printf_str # if 's', print as a string.
 	beq $s5, 'c', printf_char # if 'c', print as a ASCII char.
@@ -80,6 +81,7 @@ printf_shift_args: # shift over the fmt args,
 	move $s1, $s2 # $s1 = $s2
 	move $s2, $s3 # $s2 = $s3
 	move $s3, $s7 # $s3 = $s7
+	move $s7, $s8 # $s7 = $s8
 
 	add $s4, $s4, 1 # increment # of args processed.
 
@@ -114,7 +116,28 @@ printf_perc: # deal with a %%:
 	syscall
 	b printf_loop # branch to printf_loop
 
+printf_prefix: # deal with a %0
+	lb $s5, 0($s0)
+	add $s0, $s0, 1
+	li $s7, 1
+	printf_prefix_loop_1:
+	mul $s7, $s7, 10
+	sub $s5, $s5, 1
+	bgt $s5, '1', printf_prefix_loop_1
+	printf_prefix_loop_2:
+	move $a0, $s1
+	div $a0, $a0, $s7
+	rem $a0, $a0, 10
+	li $v0, 1
+	syscall
+	div $s7, $s7, 10
+	bge $s7, 1, printf_prefix_loop_2
+	lb $s5, 0($s0)
+	addu $s0, $s0, 1
+	b printf_shift_args # branch to printf_shift_args
+
 printf_end:
+	lw $s8, 40($sp)
 	lw $s7, 36($sp)
 	lw $ra, 32($sp) # restore the prior environment:
 	lw $fp, 28($sp)
@@ -125,7 +148,7 @@ printf_end:
 	lw $s4, 8($sp)
 	lw $s5, 4($sp)
 	lw $s6, 0($sp)
-	addu $sp, $sp, 40 # release the stack frame.
+	addu $sp, $sp, 44 # release the stack frame.
 	jr $ra # return.
 
 .data
