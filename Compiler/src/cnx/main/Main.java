@@ -37,8 +37,8 @@ public class Main {
 		Semant semant = new Semant();
 		semant.checkProgram(tree);
 		
-		Beautifier formater = new Beautifier(filename+".cnx");
-		formater.start(tree);
+		//Beautifier formater = new Beautifier(filename+".cnx");
+		//formater.start(tree);
 		
 		Translate tran = new Translate();
 		tran.ans.add(new LABEL(new Label(Constants.top_level)));
@@ -47,7 +47,7 @@ public class Main {
 		tran.ans.add(new Leave(new Label(Constants.top_level)));
 		
 		Analyzer ana = new Analyzer();
-		PrintStream mid = new PrintStream(new BufferedOutputStream(new FileOutputStream("cnx.tmp")));
+	/*	PrintStream mid = new PrintStream(new BufferedOutputStream(new FileOutputStream("cnx.tmp")));
 		mid.println("----------Top Level----------");
 		for(Quad p:tran.ans)
 			mid.println(p);
@@ -57,9 +57,10 @@ public class Main {
 			for(Quad q: p.getQuads())
 				mid.println(q);
 		}
-		mid.close();
+		mid.close();*/
 		
-		PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream("cnx.asm")));
+		//PrintStream out = new PrintStream(new BufferedOutputStream(new FileOutputStream("cnx.asm")));
+		PrintStream out = System.out;
 		Codegen codegen = new Codegen();
 		codegen.gen(new Assem(".data"));
 		

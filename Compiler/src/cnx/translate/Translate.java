@@ -472,36 +472,48 @@ public class Translate extends Semant{
 	public Addr tranLogical_or_expression(Logical_or_expression x){
 		if(x._link == null)
 			return tranLogical_and_expression(x._x);
-		else{
-			Label next = new Label();
-			Label otherwise = new Label();
-			
-			Temp ret = Constants.now.newLocal();
-			Addr t1 = tranLogical_or_expression(x._link);
-			emit(new IfFalse(t1, next));
-			emit(new Move(ret, new Const(1)));
-			emit(new Goto(otherwise));
-			emit(new LABEL(next));
-			Addr t2 = tranLogical_and_expression(x._x);
-			emit(new Move(ret, t2));
-			emit(new LABEL(otherwise));
-			return ret;
+		List<Logical_and_expression> l = new ArrayList<Logical_and_expression>();
+		while(x != null){
+			l.add(x._x);
+			x = x._link;
 		}
+		Collections.reverse(l);
+		Addr ret = Constants.now.newLocal();
+		Label next = new Label();
+		Label other = new Label();
+		for(Logical_and_expression r:l){
+			Addr t = tranLogical_and_expression(r);
+			emit(new If(t, next));
+		}
+		emit(new Move(ret, new Const(0)));
+		emit(new Goto(other));
+		emit(new LABEL(next));
+		emit(new Move(ret, new Const(1)));
+		emit(new LABEL(other));
+		return ret;
 	}
 	public Addr tranLogical_and_expression(Logical_and_expression x){
 		if(x._link == null)
 			return tranInclusive_or_expression(x._x);
-		else{
-			Temp ret = Constants.now.newLocal();
-			emit(new Move(ret, new Const(0)));
-			Label next = new Label();
-			Addr t1 = tranLogical_and_expression(x._link);
-			emit(new IfFalse(t1, next));
-			Addr t2 = tranInclusive_or_expression(x._x);
-			emit(new Move(ret, t2));
-			emit(new LABEL(next));
-			return ret;
+		List<Inclusive_or_expression> l = new ArrayList<Inclusive_or_expression>();
+		while(x != null){
+			l.add(x._x);
+			x = x._link;
 		}
+		Collections.reverse(l);
+		Addr ret = Constants.now.newLocal();
+		Label next = new Label();
+		Label other = new Label();
+		for(Inclusive_or_expression r:l){
+			Addr t = tranInclusive_or_expression(r);
+			emit(new IfFalse(t, next));
+		}
+		emit(new Move(ret, new Const(1)));
+		emit(new Goto(other));
+		emit(new LABEL(next));
+		emit(new Move(ret, new Const(0)));
+		emit(new LABEL(other));
+		return ret;
 	}
 	public Addr tranInclusive_or_expression(Inclusive_or_expression x){
 		if(x._link == null)
@@ -646,7 +658,7 @@ public class Translate extends Semant{
 						else{
 							Addr tmp = Constants.now.newLocal();
 							emit(new Load(tmp, t, new Const(0)));
-							if(Assign_op != -1)emit(new Binop(tmp, tmp, Assign_op, Right));
+							if(Assign_op != -1)tmp=makeBinop(tmp, tmp, Right, Assign_op);
 							else emit(new Move(tmp, Right));
 							emit(new Store(t, new Const(0), tmp));
 							return tmp;
@@ -1006,6 +1018,20 @@ public class Translate extends Semant{
 		}
 		else{
 			if(t instanceof Const || t == null)t = Constants.now.newLocal();
+			if(op == 2 && y instanceof Const){
+				int i = ((Const)y).value;
+				if(Integer.toBinaryString(i).indexOf("1") == Integer .toBinaryString(i).lastIndexOf("1")){
+					op = 16;
+					y = new Const(Integer.toBinaryString(i).length() - 1);
+				}
+			}
+			if(op == 3 && y instanceof Const){
+				int i = ((Const)y).value;
+				if(Integer.toBinaryString(i).indexOf("1") == Integer .toBinaryString(i).lastIndexOf("1")){
+					op = 17;
+					y = new Const(Integer.toBinaryString(i).length() - 1);
+				}
+			}
 			emit(new Binop(t, x, op, y));
 			return t;
 		}
