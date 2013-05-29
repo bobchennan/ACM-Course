@@ -16,7 +16,7 @@ public class If extends Quad {
 		this.l = l;
 	}
 	public String toString(){
-		return "ifFalse " + x + " goto " + l;
+		return "if " + x + " goto " + l;
 	}
 	
 	@Override

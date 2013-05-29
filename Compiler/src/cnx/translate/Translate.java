@@ -387,9 +387,7 @@ public class Translate extends Semant{
 			
 			emit(new LABEL(begin));
 			Addr tmp = tranExpression(((While_statement) x)._exp);
-			Addr tmp2 = null;
-			tmp2 = makeBinop(tmp2, tmp, new Const(0), 9);
-			emit(new IfFalse(tmp2, next));
+			emit(new IfFalse(tmp, next));
 			pushLabel(breakLabels, next);
 			tranStatement(((While_statement) x)._st);
 			popLabel(breakLabels);
@@ -404,9 +402,7 @@ public class Translate extends Semant{
 			tranExpression(((For_statement) x)._exp1);
 			emit(new LABEL(check));
 			Addr tmp = tranExpression(((For_statement)x)._exp2);
-			Addr tmp2 = null;
-			tmp2 = makeBinop(tmp2, tmp, new Const(0), 9);
-			emit(new IfFalse(tmp2, next));
+			emit(new IfFalse(tmp, next));
 			emit(new LABEL(begin));
 			pushLabel(breakLabels, next);
 			pushLabel(continueLabels, check);
