@@ -18,8 +18,8 @@ import cnx.temp.*;
 import cnx.translate.DataFrag;
 
 public class Main {
-	private static int compile(String filename, boolean opt) throws Exception{
-		InputStream inp = new BufferedInputStream(new FileInputStream(filename));
+	private static int compile(String[] arg, boolean opt) throws Exception{
+		InputStream inp = new BufferedInputStream(new FileInputStream(arg[0]));
 		Parser parser = new Parser(inp);
 		java_cup.runtime.Symbol parseTree = null;
 		try {
@@ -37,8 +37,10 @@ public class Main {
 		Semant semant = new Semant();
 		semant.checkProgram(tree);
 		
-		//Beautifier formater = new Beautifier(filename+".cnx");
-		//formater.start(tree);
+		if(arg.length > 1){
+			Beautifier formater = new Beautifier(arg[1]);
+			formater.start(tree);
+		}
 		
 		Translate tran = new Translate();
 		tran.ans.add(new LABEL(new Label(Constants.top_level)));
@@ -114,7 +116,7 @@ public class Main {
 	public static void main(String argv[]) {
 		if (argv.length > 0) {
 			try {
-				compile(argv[0], true);
+				compile(argv, true);
 			}
 			catch (Exception e) {
 				e.printStackTrace(System.out);

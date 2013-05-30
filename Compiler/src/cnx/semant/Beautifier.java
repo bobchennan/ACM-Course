@@ -97,10 +97,7 @@ public class Beautifier {
 		}
 	}
 	public void visitConstant_expressions(Constant_expressions x)throws Exception{
-		boolean st = false;
 		for(int i = 0; x != null && i < x._l.size(); ++i){
-			if(st)out.write(", ");
-			st = true;
 			out.write('[');
 			visitLogical_or_expression((Logical_or_expression)x._l.get(i));
 			out.write(']');
