@@ -792,6 +792,15 @@ public class Translate extends Semant{
 		Type ty = checkArray_expression(x);
 		Type ty2 = checkPostfix_expression(x._x);
 		if(!(ty2 instanceof ARRAY)){
+			if(((POINTER)ty2).elementType instanceof CHAR){
+				Addr ret = Constants.now.newLocal();
+				LinkedList<Temp> params = new LinkedList<Temp>();
+				params.add((Temp)l);
+				params.add((Temp)now);
+				emit(new Call(ret, new Label("tranchar"), params));
+				return ret;
+			}
+			else{
 			Addr tmp = makeBinop(null, getSize(((POINTER)ty2).elementType), now, 2);
 			Addr tmp2 = makeBinop(null, l, tmp, 0);
 			if(((POINTER)ty2).elementType instanceof RECORD)
@@ -806,6 +815,7 @@ public class Translate extends Semant{
 					makeStore(tmp2, new Const(0), Right);
 					return Right;
 				}
+			}
 			}
 		}
 		else if(now instanceof Const){

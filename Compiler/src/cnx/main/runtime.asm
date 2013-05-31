@@ -1,4 +1,11 @@
 
+tranchar:
+	# ao -- base
+	# a1 -- offset
+	add $a0, $a0, $a1
+	lb $v0, 0($a0)
+	jr $ra
+
 printf2:
 	# a0 -- str
 	li $v0, 4
