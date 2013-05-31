@@ -1,0 +1,1365 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass sigplanconf
+\options natbib
+\use_default_options false
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding default
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\float_placement tbh
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 0
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 2
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+This is a template LyX file for articles to be submitted to the Special
+ Interest Group on Programming Languages  (SIGPLAN).
+ How to install the SIGPLAN LaTeX class to your LaTeX system is explained
+ in 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://wiki.lyx.org/Examples/AcmSigplan
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Conference
+PLDI ’05
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}{
+\end_layout
+
+\end_inset
+
+May 20--30, 2013, Shanghai, China.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+The Conference expects 2 infos that are separated by 
+\begin_inset Quotes eld
+\end_inset
+
+
+\series bold
+}{
+\series default
+
+\begin_inset Quotes erd
+\end_inset
+
+ in TeX code.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout CopyrightYear
+2013
+\end_layout
+
+\begin_layout Copyrightdata
+x-xxxxx-xxx-x/xx/xxxx
+\end_layout
+
+\begin_layout TitleBanner
+Banner above paper title
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+is ignored unless document class option 'preprint' is used
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout PreprintFooter
+Short description of paper
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+is ignored unless document class option 'preprint' is used
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Title
+Compiler Report
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+This work was supported by cnx.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subtitle
+Compiler for C programming language
+\end_layout
+
+\begin_layout Author
+Chen
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+and
+\end_layout
+
+\end_inset
+
+ Nanxin
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}{
+\end_layout
+
+\end_inset
+
+Shanghai Jiaotong University
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}{
+\end_layout
+
+\end_inset
+
+bobchennan@gmail.com
+\end_layout
+
+\begin_layout Abstract
+This paper is a report of the compiler project.
+ .
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+category{D.3.4}{Processors}{Compilers}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+category{D.4.2}{Storage Management}{Allocation/deallocation strategies}
+\end_layout
+
+\end_inset
+
+
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\series bold
+
+\backslash
+category
+\series default
+ has 3 mandatory + 1 optional arguments
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Terms
+Algorithms, Performance, Design, Compiler
+\end_layout
+
+\begin_layout Keywords
+Parser, Semant, Translate, MIPS, Computer Language, C programming language,
+ Functional programming
+\end_layout
+
+\begin_layout Section
+Parser
+\end_layout
+
+\begin_layout Standard
+This includes syntactic analysis and lexical analysis.
+\end_layout
+
+\begin_layout Subsection
+Lexical analysis
+\end_layout
+
+\begin_layout Standard
+Read the documents for JFlex.
+ In this section we need to delete other information such as includes and
+ comments.
+ There are a few things to be mention.
+\end_layout
+
+\begin_layout Standard
+In C programming language we can use typedef to simplify some codes.
+ But in JFlex it's hard to distinguish the identifier and typedef name.
+ At first I mantain a table for querying which cannot deal with this condition:
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\lang chinese-simplified
+\begin_inset listings
+lstparams "language=C,numbers=left"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+typedef int x;
+\end_layout
+
+\begin_layout Plain Layout
+
+x x;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+when we meet the second 
+\begin_inset Quotes eld
+\end_inset
+
+x
+\begin_inset Quotes erd
+\end_inset
+
+ in 
+\begin_inset Quotes eld
+\end_inset
+
+x x;
+\begin_inset Quotes erd
+\end_inset
+
+, we will look after the symbol 
+\begin_inset Quotes eld
+\end_inset
+
+x
+\begin_inset Quotes erd
+\end_inset
+
+ in the table which tells us that 
+\begin_inset Quotes eld
+\end_inset
+
+x
+\begin_inset Quotes erd
+\end_inset
+
+ is a typedef name.
+ So we will fail in the synactic analysis because 
+\begin_inset Quotes eld
+\end_inset
+
+x x;
+\begin_inset Quotes erd
+\end_inset
+
+ is translated into 
+\begin_inset Quotes eld
+\end_inset
+
+typedef-name typedef-name;
+\begin_inset Quotes erd
+\end_inset
+
+.
+ So we can not solve this problem only in lexical analysis.
+ 
+\end_layout
+
+\begin_layout Subsection
+Syntactic analysis
+\end_layout
+
+\begin_layout Standard
+Read the documents for JCup.
+ In this section we need to modify the grammar at first because JCup doesn't
+ support some metacharacters such as 
+\begin_inset Quotes eld
+\end_inset
+
++
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+*
+\begin_inset Quotes erd
+\end_inset
+
+.
+ But if you use ANTLR, the only thing you need to do is to copy and paste
+ the grammar in your codes.
+ 
+\end_layout
+
+\begin_layout Standard
+In order to deal with the problem, we need to distingush the variable definition
+s.
+ It can be done in syntactic analysis, so we can handle this condition:
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\lang chinese-simplified
+\begin_inset listings
+lstparams "language=C,numbers=left"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+typedef int x;
+\end_layout
+
+\begin_layout Plain Layout
+
+x y, x;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+But we will fail in this condition:
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\lang chinese-simplified
+\begin_inset listings
+lstparams "language=C,numbers=left"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+typedef int x;
+\end_layout
+
+\begin_layout Plain Layout
+
+x x;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Why would this happen? Because of the algorithm, JCup needs to read one
+ more token.
+ It means when JCup tells us it's a variable definition, 
+\begin_inset Quotes eld
+\end_inset
+
+x
+\begin_inset Quotes erd
+\end_inset
+
+ was already taken as a typedef-name.
+ In yacc(a syntactic analysis tool for C programmer), we can hack it to
+ modify the pre-readed symbol.
+ But it's hard for JCup users to hack it because of the jar format.
+\end_layout
+
+\begin_layout Standard
+Therefore we should use other method.
+ A method which is used by Wuhang is to look for the last two tokens.
+ This works well for almost cases.
+ 
+\end_layout
+
+\begin_layout Standard
+Another core issue is to generator the AST(
+\lang chinese-simplified
+Abstrac Syntax Tree
+\lang english
+).
+ It can be done using semantic actions.
+ I just merge some rules in grammar and translate the symbols in grammar
+ into some classes.
+ For example, there are something looks like this:
+\end_layout
+
+\begin_layout Standard
+
+\lang chinese-simplified
+\begin_inset listings
+lstparams "numbers=left"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+postfix-expression: primary-expression postfix*    
+\end_layout
+
+\begin_layout Plain Layout
+
+postfix: '[' expression ']'         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '(' arguments? ')'         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '.' identifier         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '->' identifier         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '++'         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '--'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+I have merged the definiton of postfix-expression and postfix into one rule
+ and translated into this classes:
+\end_layout
+
+\begin_layout Itemize
+Array-expression
+\end_layout
+
+\begin_layout Itemize
+Function-expression
+\end_layout
+
+\begin_layout Itemize
+Dot-expression
+\end_layout
+
+\begin_layout Itemize
+Pointer-expression
+\end_layout
+
+\begin_layout Itemize
+Inc-expression
+\end_layout
+
+\begin_layout Itemize
+Dec-expression
+\end_layout
+
+\begin_layout Standard
+Also I have read 
+\begin_inset CommandInset href
+LatexCommand href
+name "Yacc is dead: An update"
+target "http://matt.might.net/articles/parsing-with-derivatives/"
+
+\end_inset
+
+ which introduces a new algorithm for parsing.
+ This is a intuitive algorithm which may hit exponential complexity in the
+ worst cases.
+ But it's easy to understand and easy to implement using funcitonal programming.
+ Memoization and Laziness need to be used for the infinite descent on some
+ recursive context-free language.
+ There are some Java implements in 
+\begin_inset CommandInset href
+LatexCommand href
+name "Java-Parser-Derivatives"
+target "https://github.com/tmmcguire/Java-Parser-Derivatives"
+
+\end_inset
+
+ and 
+\begin_inset CommandInset href
+LatexCommand href
+name "Parsing with Derivatives(a series of posts on derivative-related techniques)"
+target "http://maniagnosis.crsr.net/p/parsing-with-derivatives.html"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+Semantic check
+\end_layout
+
+\begin_layout Standard
+This is the most boring part of the compiler.
+ All we need to do is to improve our C programming language skills and try
+ our best to think about all the details in C programming language.
+ There are some difficulties in semantic check:
+\end_layout
+
+\begin_layout Itemize
+Pointer types
+\end_layout
+
+\begin_layout Itemize
+Relation between char type and int type
+\end_layout
+
+\begin_layout Itemize
+incomplete type and function prototype
+\end_layout
+
+\begin_layout Itemize
+Lvalue.
+ For instance, an array is not a modifiable lvalue.
+\end_layout
+
+\begin_layout Standard
+I also have finished a source code indenter, formatter and beautifier for
+ the C programming language.
+ It's quite easy to use.
+ Just add the name of the saving file for formatted code after the command
+ line and you will get the code after formatted.
+\end_layout
+
+\begin_layout Section
+Translation
+\end_layout
+
+\begin_layout Standard
+This part is similar with semantic check because we only need to visit every
+ node in the AST and try to translate it into intermediate language.
+ At last my intermediate language includes 17 forms:
+\end_layout
+
+\begin_layout Itemize
+Address operation expression: Calculate the address of the expression.
+ This expression must be L-value.
+ For example, a=&b.
+\end_layout
+
+\begin_layout Itemize
+Binop expression: Calculate the result of the binop expression.
+ For example, a=b+c.
+\end_layout
+
+\begin_layout Itemize
+Call expression: Call the function definited in somewhere.
+ For example, a=gcd(b,c).
+\end_layout
+
+\begin_layout Itemize
+Enter label: The label marks the beginning of the function.
+\end_layout
+
+\begin_layout Itemize
+Goto expression: Goto the label which marks somewhere.
+ For example, goto L1.
+\end_layout
+
+\begin_layout Itemize
+If expression: Goto the label if the temp not equals to zero.
+ 
+\end_layout
+
+\begin_layout Itemize
+IfFalse expression: Goto the label if the temp equals to zero.
+\end_layout
+
+\begin_layout Itemize
+LABEL: Marks the label here.
+ For example, 
+\begin_inset Quotes eld
+\end_inset
+
+L1:
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+Leave label: The label marks the ending of the function.
+\end_layout
+
+\begin_layout Itemize
+Load expression: Load the value in somewhere in the memory.
+ For exmaple, a=b[c].
+\end_layout
+
+\begin_layout Itemize
+Malloc expression: Call malloc function.
+\end_layout
+
+\begin_layout Itemize
+Move expression: An assign.
+ For example, a=b.
+\end_layout
+
+\begin_layout Itemize
+Return expression: Return some value for functions.
+\end_layout
+
+\begin_layout Itemize
+Store expression: Store the value into somewhere in the memory.
+ For example, a[b]=c.
+\end_layout
+
+\begin_layout Itemize
+Storez expression: Store zero into somewhere in the memory.
+ This is a special case for store expression which can uses $zero.
+\end_layout
+
+\begin_layout Itemize
+Unary expression: Calculate the unary operator expression.
+ For example, a=~b.
+\end_layout
+
+\begin_layout Standard
+These forms are easily to translate into assembly language.
+ But there are also some things we need to do or we can do to optimize our
+ intermediate code:
+\end_layout
+
+\begin_layout Itemize
+We can do register allocation which will greatly reduce the instructions.
+ I use linear scan to do register allocation because linear scan algorithm
+ is more convenient to implement than graph coloring.
+ At last I don't use $fp register.
+\end_layout
+
+\begin_layout Itemize
+We can translate the code such like 
+\begin_inset Quotes eld
+\end_inset
+
+a=b*4
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+b=a/4
+\begin_inset Quotes erd
+\end_inset
+
+ into bit operations.
+ Four times are always using for address calculation.
+\end_layout
+
+\begin_layout Itemize
+For successive and operation or or operation, we should implement short-circuit
+ evaluation.
+ For code 
+\begin_inset Quotes eld
+\end_inset
+
+a=b&&c&&d
+\begin_inset Quotes erd
+\end_inset
+
+, I will translate to these intermediate codes(if 
+\shape italic
+a
+\shape default
+ maps to R1):
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+IfFalse b goto L1
+\end_layout
+
+\begin_layout Enumerate
+IfFalse c goto L1
+\end_layout
+
+\begin_layout Enumerate
+IfFalse d goto L1
+\end_layout
+
+\begin_layout Enumerate
+R2=1
+\end_layout
+
+\begin_layout Enumerate
+goto L2
+\end_layout
+
+\begin_layout Enumerate
+L1:R2=0
+\end_layout
+
+\begin_layout Enumerate
+L2:R1=R2
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+All above and some other optimizations are implemented in my compiler.
+ For instance, variable-length arrays are supported in my compiler.
+\end_layout
+
+\begin_layout Standard
+The next issue is that how we store and visit the arrays.
+ There are two types to store the arrays:
+\end_layout
+
+\begin_layout Itemize
+Just using continuous space to store the arrays and calculate the offset
+ of the element.
+\end_layout
+
+\begin_layout Itemize
+using extra space to store pointers which are pointed to the position of
+ the element or pointer.
+\end_layout
+
+\begin_layout Standard
+These two ways are both OK in general, but in some cases all of these should
+ be used.
+ For example, the second way need to be used in the following case:
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\lang chinese-simplified
+\begin_inset listings
+lstparams "language=C,numbers=left"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+int i;      
+\end_layout
+
+\begin_layout Plain Layout
+
+int* a[11];      
+\end_layout
+
+\begin_layout Plain Layout
+
+for(i=0;i<11;++i)
+\end_layout
+
+\begin_layout Plain Layout
+
+    a[i]=malloc(11*sizeof(int));      
+\end_layout
+
+\begin_layout Plain Layout
+
+a[0][1]=2;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Because a[0], a[1], a[2]...a[10] may not be stored in the successive space
+ so you should caculate the offset for two times.
+ Also it's useful in order to support the pointer of the array, such like
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\lang chinese-simplified
+\begin_inset listings
+lstparams "language=C,numbers=left"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+typedef int intarray[11];
+\end_layout
+
+\begin_layout Plain Layout
+
+int a[11][11];
+\end_layout
+
+\begin_layout Plain Layout
+
+intarray *p=&(a[0]);
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Another problem is that how to do register allocation for global variables.
+ The easiest way to solve this problem is not to assign register for any
+ global variables.
+ This will cost a lot which makes a lot of loads and stores.
+ However, we can use some better ideals.
+ We can treat global variables as local variables to do register allocation.
+ And we must be careful that the global variables need to be loaded at the
+ beginning and reloaded after the function calls which may modify their
+ values.
+ Also when we meet function calls we must store the values to update the
+ memory.
+ In addition, providing some registers only for global variables is a good
+ ideal because in some cases we don't use up all the registers.
+ These means conduct well in the test of the eight queens.
+\end_layout
+
+\begin_layout Standard
+Finally my assembly code looks like this:
+\end_layout
+
+\begin_layout Itemize
+.data
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+args: store arguments when the number of arguments exceed four.
+\end_layout
+
+\begin_layout Itemize
+disp: store global variables here.
+\end_layout
+
+\begin_layout Itemize
+gc_sp_limit: store the stack pointer and maybe used in garbage collection.
+\end_layout
+
+\begin_layout Itemize
+stores string literals here.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+.text
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Functions such as main.
+\end_layout
+
+\begin_layout Itemize
+speicial work for global variables.
+\end_layout
+
+\begin_layout Itemize
+Function definition using mips such as printf and so on.
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+For one function definited in C programming language, the assembly code
+ looks like this:
+\end_layout
+
+\begin_layout Itemize
+function-name label
+\end_layout
+
+\begin_layout Itemize
+adjust the stack pointer to store registers
+\end_layout
+
+\begin_layout Itemize
+main body
+\end_layout
+
+\begin_layout Itemize
+adjust the stack pointer to resume registers
+\end_layout
+
+\begin_layout Standard
+This is the test code(eight queens):
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "breaklines=true,language=C,numbers=left,tabsize=2"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+#include <stdio.h>
+\end_layout
+
+\begin_layout Plain Layout
+
+int N = 8; 
+\end_layout
+
+\begin_layout Plain Layout
+
+int row[8], col[8]; 
+\end_layout
+
+\begin_layout Plain Layout
+
+int d[2][8 + 8 - 1]; 
+\end_layout
+
+\begin_layout Plain Layout
+
+int ans;
+\end_layout
+
+\begin_layout Plain Layout
+
+void search(int c) {     
+\end_layout
+
+\begin_layout Plain Layout
+
+	if (c == N) {         
+\end_layout
+
+\begin_layout Plain Layout
+
+		++ans;     
+\end_layout
+
+\begin_layout Plain Layout
+
+	}     else {         
+\end_layout
+
+\begin_layout Plain Layout
+
+		int r;         
+\end_layout
+
+\begin_layout Plain Layout
+
+		for (r = 0; r < N; r++) {             
+\end_layout
+
+\begin_layout Plain Layout
+
+			if (row[r] == 0 
+\end_layout
+
+\begin_layout Plain Layout
+
+				&& d[0][r+c] == 0 
+\end_layout
+
+\begin_layout Plain Layout
+
+				&& d[1][r+N-1-c] == 0) {                 
+\end_layout
+
+\begin_layout Plain Layout
+
+				row[r] = d[0][r+c] = d[1][r+N-1-c] = 1;                 
+\end_layout
+
+\begin_layout Plain Layout
+
+				col[c] = r;                 
+\end_layout
+
+\begin_layout Plain Layout
+
+				search(c+1);                 
+\end_layout
+
+\begin_layout Plain Layout
+
+				row[r] = d[0][r+c] = d[1][r+N-1-c] = 0;             
+\end_layout
+
+\begin_layout Plain Layout
+
+			}         
+\end_layout
+
+\begin_layout Plain Layout
+
+		}     
+\end_layout
+
+\begin_layout Plain Layout
+
+	} 
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+int main() {     
+\end_layout
+
+\begin_layout Plain Layout
+
+	search(0); 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	printf("%d
+\backslash
+n",ans);     
+\end_layout
+
+\begin_layout Plain Layout
+
+	return 0; 
+\end_layout
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\begin_layout Plain Layout
+
+//92
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It runs about 49W instructions for this code.
+\end_layout
+
+\begin_layout Standard
+For instance, the main() function translates into assembly code like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "breaklines=true,language=Assembler,numbers=left"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+main: 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	sw $sp, gc_sp_limit 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	la $gp, disp 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	la $v1, args 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	addiu $sp, $sp, -80 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	sw $ra, 76($sp) 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	sw $t0, 4($sp) 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	jal PROGRAM 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	li $t0, 0 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	move $a0, $t0 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	jal search
+\end_layout
+
+\begin_layout Plain Layout
+
+    la $t1, L34         
+\end_layout
+
+\begin_layout Plain Layout
+
+	move $a0, $t1                         
+\end_layout
+
+\begin_layout Plain Layout
+
+	lw $k0, 32($gp) # load for spilling         
+\end_layout
+
+\begin_layout Plain Layout
+
+	move $a1, $k0         
+\end_layout
+
+\begin_layout Plain Layout
+
+	jal printf         
+\end_layout
+
+\begin_layout Plain Layout
+
+	move $t0, $v0
+\end_layout
+
+\begin_layout Plain Layout
+
+	li $v0, 0 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	j __main 
+\end_layout
+
+\begin_layout Plain Layout
+
+__main: 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	lw $t0, 4($sp) 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	lw $ra, 76($sp) 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	addiu $sp, $sp, 80 	
+\end_layout
+
+\begin_layout Plain Layout
+
+	jr $ra
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Acknowledgments
+Logical, Mathematics, Computer language
+\end_layout
+
+\begin_layout Bibliography
+\labelwidthstring References
+\begin_inset CommandInset bibitem
+LatexCommand bibitem
+key "ahmed02"
+
+\end_inset
+
+Matthew Might, David Darais, and Daniel Spiewak.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+newblock
+\end_layout
+
+\end_inset
+
+ An easy way to do general parsing.
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+newblock
+\end_layout
+
+\end_inset
+
+ I
+\emph on
+n Parsing with Derivatives(ICFP 2011) 
+\emph default
+.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Reference parts have to be separated by 
+\series bold
+
+\backslash
+newblock
+\series default
+.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

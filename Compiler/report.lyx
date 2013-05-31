@@ -1,0 +1,281 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass ctex-report
+\begin_preamble
+% 如果没有这一句命令，XeTeX会出错，原因参见
+% http://bbs.ctex.org/viewthread.php?tid=60547
+\DeclareRobustCommand\nobreakspace{\leavevmode\nobreak\ }
+\end_preamble
+\options UTF8
+\use_default_options true
+\maintain_unincluded_children false
+\language chinese-simplified
+\language_package none
+\inputencoding utf8-plain
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format pdf4
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+编译器报告
+\end_layout
+
+\begin_layout Author
+5110309028 陈楠昕
+\end_layout
+
+\begin_layout Abstract
+这是我的编译器大作业报告，内容比较杂，有一些想做的东西但是没做完，也写在这上面了。
+\end_layout
+
+\begin_layout Standard
+编译器还是花了不少时间去做的，感觉前期花的时间还多些，后期主要可以参考xjia的Tiger代码，并且我优化写得不多。我对于本课程的看法是C语言编译器写起来关于语
+言本身的细节太多，完全不知道正确的处理方式，一方面对于语言本身缺乏太好的认识，另一方面龙书虎书上面找不到这些具体问题的答案。所以写起来很多时候完全靠自我YY，而
+且感觉C语言很多概念网上也给出了很多答案，所以更加不太好处理。总的说起来其实我自己没有太仔细地看书，其他同学很多都没有看书，普遍感觉是书籍意义不大。我觉得这很有
+可能是因为原来写Tiger编译器可以抄书上的代码>_<，而我们写起来基本靠YY和参考xjia的Tiger代码。
+\end_layout
+
+\begin_layout Section
+语法分析与词法分析
+\end_layout
+
+\begin_layout Standard
+这个做起来算是比较简单的部分了，只需要阅读JFlex和JCup的相关文档就行了。这里还是有不少问题的，首先是我一开始没有处理掉include语句，在做seman
+t时才发现。另外是大家普遍碰到的typedef问题。typedef是C语言中一条非常高端的语句，用它能够简化很多麻烦的语句。但是从编译器层面来看，处理这个是相当
+麻烦的。一个简单的想法是记录一个表，对于typedef语句将定义的东西记录下来，然后对于一个符号查表看是否是被typedef定义的。这样简单来看是处理不了这种情
+况的：
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+typedef int x;
+\end_layout
+
+\begin_layout Plain Layout
+
+x x;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+这种情况恰恰是我认为比较难以处理的情况。如果使用的是ANTLR的话，他的parse有着非常神奇的机制，如果出错有一套恢复机制，这个在JCup中似乎没有找到。对于
+这个问题，有一个自然的想法是在JCup中识别出变量定义语句时设置一个全局变量，即类型之后的符号都不是类型，直到这个语句结束。但是这样一套机制只能够应对以下情况：
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+\align center
+
+typedef int x;
+\end_layout
+
+\begin_layout Plain Layout
+\align center
+
+x y,x;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+一开始的情况出错的原因在于JCup所使用的算法的预读机制，这样在类型后面紧跟着的变量已经被“读入”进来，因而无法改变其性质。对于这个问题Lex比较好解决，可以直
+接查找那个数组是用来存储预读取的Token的，因此可以手动改掉。但是在JCup中似乎是存在于runtime中，以jar包方式存储的，因此比较麻烦。对于这个问题，
+吴航提出来一种新的策略，即对于每一个token，看一下上两个token是什么来判断。这个方法对于大部分的情况确实都没问题，但是自然不能对于所有情况成立。因此对于
+JCup最后没有找到好的解决方法。
+\end_layout
+
+\begin_layout Standard
+关于AST(Abstrac Syntax Tree)的构造，我在写语义检查的时候才完成。AST的构造方式比较多，对于ANTLR有两种方式，一种是使用ANTLR3
+，自带构造AST功能；另一种是用ANTLR4，手动将CST(Concrete Syntax Tree)转成AST。对于JCup用户来说，就是简单的使用语义动作构
+造节点类即可。值得一提的是JCup使用的Grammar不支持很多正则符号，比如'+'、'*'之类的，所以改起来很是麻烦，而ANTLR就没有这个问题。在AST的构
+造方面，我是简单的基本将每一个Grammar中的一个符号对应一种类。对于一些比较特殊的符号，类似于postfix-expression，其生成规则如下：
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+postfix-expression: primary-expression postfix*    
+\end_layout
+
+\begin_layout Plain Layout
+
+postfix: '[' expression ']'         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '(' arguments? ')'         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '.' identifier         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '->' identifier         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '++'         
+\end_layout
+
+\begin_layout Plain Layout
+
+       | '--'
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+我的处理方式是将postfix-expression和postfix规则合到一起，然后按照其意义分成这几类：
+\end_layout
+
+\begin_layout Itemize
+Array_expression
+\end_layout
+
+\begin_layout Itemize
+Function_expression
+\end_layout
+
+\begin_layout Itemize
+Dot_expression
+\end_layout
+
+\begin_layout Itemize
+Pointer_expression
+\end_layout
+
+\begin_layout Itemize
+Inc_expression and Dec_expression
+\end_layout
+
+\begin_layout Standard
+还有一个问题是是否压缩路径，比如对于二元运算表达式是否看成一类节点，即将Grammar中的additive-expression和multiplicative-
+expression等用同一个类来表示。我的做法是将他们分开表示，感觉这样做不太好，后面写起来各种麻烦，要写好多函数处理每一个类，而实际上比如二元运算符性质上比
+较像，完全可以用一个函数处理。这种处理方式大大增加了代码长度。
+\end_layout
+
+\begin_layout Standard
+阅读了《Yacc is dead: An update》，感觉比LALR算法更加自然。
+\end_layout
+
+\begin_layout Section
+语义检查
+\end_layout
+
+\begin_layout Standard
+语义检查这部分写的比较乱，因为C语言语法细节太多了。这部分比较麻烦的有以下几个方面：
+\end_layout
+
+\begin_layout Itemize
+指针的处理
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+指针是C语言中一种强大的工具，由于指针这种特殊的存在，给编译器的实现带来了各种各样的麻烦。首先是指针类型的类型转换问题。所有的指针类型可以互相转换，int等类型
+也可以转换成指针类型。另外函数指针处理起来相当麻烦，我没有很好的支持函数指针。
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+char类型与int类型的关系
+\end_layout
+
+\begin_layout Itemize
+对于函数声明与类型声明的处理
+\end_layout
+
+\begin_layout Itemize
+左值的判断
+\end_layout
+
+\begin_layout Section
+小结
+\end_layout
+
+\begin_layout Standard
+本文档使用article (CTeX)文档类，语言设置为简体中文，编码使用UTF8，字体用Adobe中文字体，输出类型设置为XeTeX。编译的时候中文与英文之间
+会自动加上空格，方便阅读。
+\end_layout
+
+\end_body
+\end_document
