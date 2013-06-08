@@ -168,7 +168,7 @@ Compiler Report
 status open
 
 \begin_layout Plain Layout
-This work was supported by cnx.
+This work was supported by CNX.
 \end_layout
 
 \end_inset
@@ -268,7 +268,7 @@ Algorithms, Performance, Design, Compiler
 \end_layout
 
 \begin_layout Keywords
-Parser, Semant, Translate, MIPS, Computer Language, C programming language,
+Parser, Semantic, Translate, MIPS, Computer Language, C programming language,
  Functional programming
 \end_layout
 
@@ -294,7 +294,11 @@ Read the documents for JFlex.
 \begin_layout Standard
 In C programming language we can use typedef to simplify some codes.
  But in JFlex it's hard to distinguish the identifier and typedef name.
- At first I mantain a table for querying which cannot deal with this condition:
+ At first I maintain a table for querying.
+ When we meet typedef statements, we add the typedef name into the table.
+ When we want to check whether one symbol is an identifier, we just look
+ up the table.
+ This method cannot deal with this condition.
 \end_layout
 
 \begin_layout Standard
@@ -338,7 +342,7 @@ x x;
 \begin_inset Quotes erd
 \end_inset
 
-, we will look after the symbol 
+, we will look up the symbol 
 \begin_inset Quotes eld
 \end_inset
 
@@ -355,7 +359,7 @@ x
 \end_inset
 
  is a typedef name.
- So we will fail in the synactic analysis because 
+ So we will fail in the syntactic analysis because 
 \begin_inset Quotes eld
 \end_inset
 
@@ -406,8 +410,8 @@ Read the documents for JCup.
 \end_layout
 
 \begin_layout Standard
-In order to deal with the problem, we need to distingush the variable definition
-s.
+In order to deal with the problem, we need to distinguish the variable definitio
+ns.
  It can be done in syntactic analysis, so we can handle this condition:
 \end_layout
 
@@ -466,7 +470,32 @@ x x;
 \begin_layout Standard
 Why would this happen? Because of the algorithm, JCup needs to read one
  more token.
- It means when JCup tells us it's a variable definition, 
+ When it matches 
+\begin_inset Quotes eld
+\end_inset
+
+type-specifier variable ;
+\begin_inset Quotes erd
+\end_inset
+
+, the semantic action after 
+\begin_inset Quotes eld
+\end_inset
+
+type-specifier
+\begin_inset Quotes erd
+\end_inset
+
+ can't influence the decision of the next token in JFlex.
+ It means when the semantic action after 
+\begin_inset Quotes eld
+\end_inset
+
+type-specifier
+\begin_inset Quotes erd
+\end_inset
+
+ is taken, 
 \begin_inset Quotes eld
 \end_inset
 
@@ -474,7 +503,7 @@ x
 \begin_inset Quotes erd
 \end_inset
 
- was already taken as a typedef-name.
+ was already taken into some as a typedef-name.
  In yacc(a syntactic analysis tool for C programmer), we can hack it to
  modify the pre-readed symbol.
  But it's hard for JCup users to hack it because of the jar format.
@@ -484,7 +513,8 @@ x
 Therefore we should use other method.
  A method which is used by Wuhang is to look for the last two tokens.
  This works well for almost cases.
- 
+ At last I just maintain a table for querying which cannot deal with the
+ special case.
 \end_layout
 
 \begin_layout Standard
@@ -548,8 +578,8 @@ postfix: '[' expression ']'
 \end_layout
 
 \begin_layout Standard
-I have merged the definiton of postfix-expression and postfix into one rule
- and translated into this classes:
+I have merged the definition of postfix-expression and postfix into one
+ rule and translated into this classes:
 \end_layout
 
 \begin_layout Itemize
@@ -588,8 +618,8 @@ target "http://matt.might.net/articles/parsing-with-derivatives/"
  which introduces a new algorithm for parsing.
  This is a intuitive algorithm which may hit exponential complexity in the
  worst cases.
- But it's easy to understand and easy to implement using funcitonal programming.
- Memoization and Laziness need to be used for the infinite descent on some
+ But it's easy to understand and easy to implement using functional programming.
+ Memorization and Laziness need to be used for the infinite descent on some
  recursive context-free language.
  There are some Java implements in 
 \begin_inset CommandInset href
@@ -657,41 +687,49 @@ This part is similar with semantic check because we only need to visit every
 \end_layout
 
 \begin_layout Itemize
-Address operation expression: Calculate the address of the expression.
- This expression must be L-value.
- For example, a=&b.
+Address operation expression: Address for one temp.
+ Including offsets(temp or constant).
+ For example, a=$sp + 4.
 \end_layout
 
 \begin_layout Itemize
 Binop expression: Calculate the result of the binop expression.
+ Including binop operation, one temp for store, two temps or one temp and
+ one constant to be calculated.
  For example, a=b+c.
 \end_layout
 
 \begin_layout Itemize
-Call expression: Call the function definited in somewhere.
+Call expression: Call the function defined in somewhere.
+ Including the set of params and the label for function.
+ May including the temp for return value.
  For example, a=gcd(b,c).
 \end_layout
 
 \begin_layout Itemize
 Enter label: The label marks the beginning of the function.
+ Including the label for this function.
 \end_layout
 
 \begin_layout Itemize
 Goto expression: Goto the label which marks somewhere.
+ Including the label for jump.
  For example, goto L1.
 \end_layout
 
 \begin_layout Itemize
 If expression: Goto the label if the temp not equals to zero.
- 
+ Including the temp for testing and the label for jump.
 \end_layout
 
 \begin_layout Itemize
 IfFalse expression: Goto the label if the temp equals to zero.
+ Including the temp for testing and the label for jump.
 \end_layout
 
 \begin_layout Itemize
 LABEL: Marks the label here.
+ Including one label.
  For example, 
 \begin_inset Quotes eld
 \end_inset
@@ -705,29 +743,38 @@ L1:
 
 \begin_layout Itemize
 Leave label: The label marks the ending of the function.
+ Including the label for this function.
 \end_layout
 
 \begin_layout Itemize
 Load expression: Load the value in somewhere in the memory.
- For exmaple, a=b[c].
+ Including the temp for store, the temp contains base address and offset
+ constant.
+ For example, a=b[0].
+ 
 \end_layout
 
 \begin_layout Itemize
 Malloc expression: Call malloc function.
+ This is a special case for call expression.
 \end_layout
 
 \begin_layout Itemize
 Move expression: An assign.
+ Including the dest temp and source temp or constant value.
  For example, a=b.
 \end_layout
 
 \begin_layout Itemize
 Return expression: Return some value for functions.
+ Including the temp for saving returned value.
 \end_layout
 
 \begin_layout Itemize
 Store expression: Store the value into somewhere in the memory.
- For example, a[b]=c.
+ Including the temp to be stored, the temp contains base address and offset
+ constant.
+ For example, a[0]=b.
 \end_layout
 
 \begin_layout Itemize
@@ -737,7 +784,82 @@ Storez expression: Store zero into somewhere in the memory.
 
 \begin_layout Itemize
 Unary expression: Calculate the unary operator expression.
+ Including unary operation and one temp for store and one temp to be calculated.
  For example, a=~b.
+\end_layout
+
+\begin_layout Standard
+For example, in order to use pointer in C programming language like this:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+lstparams "language=C"
+inline false
+status open
+
+\begin_layout Plain Layout
+
+int a = 1;     
+\end_layout
+
+\begin_layout Plain Layout
+
+int *b = &a;     
+\end_layout
+
+\begin_layout Plain Layout
+
+*b = 2;
+\end_layout
+
+\begin_layout Plain Layout
+
+a = 1;
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+I will generate the following IR code:
+\end_layout
+
+\begin_layout Standard
+\begin_inset listings
+inline false
+status open
+
+\begin_layout Plain Layout
+
+t0=1
+\end_layout
+
+\begin_layout Plain Layout
+
+t1=$sp+0
+\end_layout
+
+\begin_layout Plain Layout
+
+t2=t1
+\end_layout
+
+\begin_layout Plain Layout
+
+t2[0]=2
+\end_layout
+
+\begin_layout Plain Layout
+
+t0=1
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -889,7 +1011,7 @@ a[0][1]=2;
 
 \begin_layout Standard
 Because a[0], a[1], a[2]...a[10] may not be stored in the successive space
- so you should caculate the offset for two times.
+ so you should calculate the offset for two times.
  Also it's useful in order to support the pointer of the array, such like
 \end_layout
 
@@ -975,17 +1097,17 @@ Functions such as main.
 \end_layout
 
 \begin_layout Itemize
-speicial work for global variables.
+special work for global variables.
 \end_layout
 
 \begin_layout Itemize
-Function definition using mips such as printf and so on.
+Function definition code using MIPS such as printf and so on.
 \end_layout
 
 \end_deeper
 \begin_layout Standard
-For one function definited in C programming language, the assembly code
- looks like this:
+For one function defined in C programming language, the assembly code looks
+ like this:
 \end_layout
 
 \begin_layout Itemize
@@ -1187,32 +1309,33 @@ main:
 
 \begin_layout Plain Layout
 
-	la $gp, disp 	
+	la $gp, disp 	//locate $gp
 \end_layout
 
 \begin_layout Plain Layout
 
-	la $v1, args 	
+	la $v1, args 	//locate $v1 which was using for store arguments
 \end_layout
 
 \begin_layout Plain Layout
 
-	addiu $sp, $sp, -80 	
+	addiu $sp, $sp, -80 	//move stack pointer for backup registers which are
+ using in this section
 \end_layout
 
 \begin_layout Plain Layout
 
-	sw $ra, 76($sp) 	
+	sw $ra, 76($sp) 	//save $ra
 \end_layout
 
 \begin_layout Plain Layout
 
-	sw $t0, 4($sp) 	
+	sw $t0, 4($sp) 	//save $t0
 \end_layout
 
 \begin_layout Plain Layout
 
-	jal PROGRAM 	
+	jal PROGRAM 	//jump into the section which is dealing with the global variables
 \end_layout
 
 \begin_layout Plain Layout
@@ -1267,7 +1390,8 @@ main:
 
 \begin_layout Plain Layout
 
-	j __main 
+	j __main 	//jump into the section which is resume registers which are using
+ in this section
 \end_layout
 
 \begin_layout Plain Layout
